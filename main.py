@@ -1,77 +1,141 @@
-from datetime import date, datetime          # импорт классов date и datetime из модуля datetime
+"""Сервис планирования поездок на общественном транспорте.
 
-# ----- Пользователь -----
-user_name = "Иван Иванов"                    # имя пассажира, тип str (строка)
-user_age = 22                                # возраст пассажира, тип int (целое число)
-has_benefits = False                         # наличие льгот, тип bool (True/False)
+Точка входа: меню приложения.
+Бизнес-логика вынесена в модули routes.py, trips.py, storage.py, utils.py.
+"""
 
-# ----- Маршрут -----
-route_number = "А-42"                        # номер маршрута, тип str
-route_type = "Автобус"                       # вид транспорта, тип str
-travel_time_minutes = 35                     # время в пути без остановок, тип int, в минутах
-base_price = 50.0                            # базовая стоимость проезда, тип float, в рублях
-
-# ----- Остановки -----
-stop_from = "Улица Ленина"                   # начальная остановка, тип str
-stop_to = "Площадь Победы"                   # конечная остановка, тип str
-stops_count = 8                              # количество остановок на пути, тип int
-
-# ----- Поездка -----
-trip_date = date(2026, 9, 15)                # дата поездки: год=2026, месяц=9, день=15; тип date
-departure_time = datetime(2026, 9, 15, 8, 30)  # дата+время отправления 08:30; тип datetime
-
-
-# Функция 1: проверка доступности маршрута
-def is_route_available(route_number, stop_from, stop_to):   # объявление функции; 3 параметра
-    if route_number and stop_from and stop_to:              # проверяем: все три значения непустые (логическое И)
-        return True                                         # если да — возвращаем True (маршрут доступен)
-    return False                                            # иначе возвращаем False (недоступен)
-
-
-# Функция 2: расчёт времени поездки
-def calculate_travel_time(travel_time_minutes, stops_count):   # объявление функции; 2 параметра (int)
-    total_time = travel_time_minutes + stops_count             # складываем время в пути и число остановок
-    return total_time                                          # возвращаем результат (int)
+# Импорт функций из модулей проекта.
+# Функции is_route_available, calculate_travel_time, calculate_price
+# сохранены в main для совместимости с tests/test_main.py из ПР1.
+from routes import (
+    is_route_available,
+    calculate_travel_time,
+    calculate_price,
+    get_route_status,
+    add_route,
+    find_routes,
+    filter_routes_by_price,
+    sort_routes,
+    route_statistics,
+)
+from trips import (
+    is_route_free,
+    create_trip,
+    cancel_trip,
+    find_trips_by_user,
+    get_trip_summary,
+)
+from storage import load_routes, save_routes, load_trips, save_trips
+from utils import input_int, input_float, input_date
 
 
-# Функция 3: расчёт стоимости проезда
-def calculate_price(base_price, has_benefits):   # объявление функции; параметры: цена (float) и флаг льгот (bool)
-    if has_benefits:                             # если льготы есть (True)
-        return base_price * 0.5                  # возвращаем половину цены (скидка 50%)
-    return base_price                            # иначе возвращаем полную цену
+DATA_ROUTES = "data/routes.json"
+DATA_TRIPS = "data/trips.json"
 
 
-# Функция 4: сводка о поездке
-def get_trip_summary(user_name, route_number, stop_from, stop_to,
-                     travel_time, price):        # объявление функции; 6 параметров для формирования текста
-    return (                                     # возвращаем многострочную строку через f-строки
-        f"Пассажир: {user_name}\n"               # \n — символ переноса строки; подставляем имя
-        f"Маршрут: {route_number}\n"             # подставляем номер маршрута
-        f"Откуда: {stop_from}\n"                 # подставляем начальную остановку
-        f"Куда: {stop_to}\n"                     # подставляем конечную остановку
-        f"Время в пути: ~{travel_time} мин.\n"   # подставляем рассчитанное время
-        f"Стоимость: {price:.2f} руб."           # :.2f — формат float с 2 знаками после запятой
-    )
+def show_routes(routes: dict) -> None:
+    """Вывести список маршрутов."""
+    if not routes:
+        print("Маршрутов пока нет.")
+        return
+    print(f"{'ID':<4}{'Номер':<10}{'Транспорт':<12}{'Цена':<10}{'Время':<8}")
+    for rid, r in routes.items():
+        print(f"{rid:<4}{r['number']:<10}{r['transport_type']:<12}"
+              f"{r['base_price']:<10}{r['travel_time_minutes']:<8}")
 
 
-def main():                                      # главная функция - точка входа в сценарий
-    print("=== Сервис планирования поездок ===") # печатаем заголовок программы
-    print(f"Дата поездки: {trip_date}")          # печатаем дату поездки
-    print(f"Время отправления: {departure_time.strftime('%H:%M')}")   # печатаем только часы:минуты
-    print()                                       # печатаем пустую строку для отступа
-
-    available = is_route_available(route_number, stop_from, stop_to)  # вызываем функцию 1, результат в available (bool)
-    if not available:                             # если маршрут недоступен (not True)
-        print("Маршрут недоступен для указанных остановок.")  # сообщение об ошибке
-        return                                    # выходим из main, дальше не идём
-
-    travel_time = calculate_travel_time(travel_time_minutes, stops_count)  # вызов функции 2; результат (int) в travel_time
-    price = calculate_price(base_price, has_benefits)                      # вызов функции 3; результат (float) в price
-
-    print(get_trip_summary(                       # вызов функции 4 и печать её результата
-        user_name, route_number, stop_from, stop_to, travel_time, price    # передаём 6 аргументов
-    ))
+def show_trips(trips: list, routes: dict) -> None:
+    """Вывести список поездок."""
+    if not trips:
+        print("Поездок пока нет.")
+        return
+    for t in trips:
+        route = routes.get(t["route_id"], {})
+        print(f"#{t['id']} | {t['date']} | "
+              f"маршрут {route.get('number', '?')} | {t['user_name']}")
 
 
-if __name__ == "__main__":   # проверка: файл запущен напрямую, а не импортирован?
-    main()                   # если да — запускаем main()
+def menu() -> None:
+    """Вывести меню."""
+    print("\n=== Сервис планирования поездок ===")
+    print("1. Показать маршруты")
+    print("2. Найти маршрут")
+    print("3. Отобрать по цене")
+    print("4. Сортировать по цене")
+    print("5. Статистика по маршрутам")
+    print("6. Проверить доступность маршрута на дату")
+    print("7. Забронировать поездку")
+    print("8. Отменить поездку")
+    print("9. Показать поездки")
+    print("0. Выход")
+
+
+def main() -> None:
+    """Точка запуска приложения."""
+    routes = load_routes(DATA_ROUTES)
+    trips = load_trips(DATA_TRIPS)
+
+    while True:
+        menu()
+        choice = input("Выберите действие: ").strip()
+
+        if choice == "1":
+            show_routes(routes)
+
+        elif choice == "2":
+            q = input("Подстрока для поиска: ")
+            show_routes(find_routes(routes, q))
+
+        elif choice == "3":
+            max_price = input_float("Максимальная цена: ")
+            show_routes(filter_routes_by_price(routes, max_price))
+
+        elif choice == "4":
+            for rid, r in sort_routes(routes):
+                print(f"{rid}: {r['number']} — {r['base_price']} руб.")
+
+        elif choice == "5":
+            stats = route_statistics(routes)
+            print(f"Всего: {stats['count']}, мин: {stats['min_price']}, "
+                  f"макс: {stats['max_price']}, средняя: {stats['avg_price']}")
+
+        elif choice == "6":
+            route_id = input_int("ID маршрута: ")
+            d = input_date("Дата (ДД.ММ.ГГГГ): ")
+            free = is_route_free(trips, route_id, d)
+            print(get_route_status(free))
+
+        elif choice == "7":
+            route_id = input_int("ID маршрута: ")
+            user = input("Имя пассажира: ")
+            d = input_date("Дата (ДД.ММ.ГГГГ): ")
+            trip = create_trip(trips, route_id, d, user)
+            if trip:
+                save_trips(DATA_TRIPS, trips)
+                print(f"Поездка #{trip['id']} создана.")
+            else:
+                print("Маршрут уже занят на эту дату.")
+
+        elif choice == "8":
+            trip_id = input_int("ID поездки: ")
+            if cancel_trip(trips, trip_id):
+                save_trips(DATA_TRIPS, trips)
+                print("Поездка отменена.")
+            else:
+                print("Поездка не найдена.")
+
+        elif choice == "9":
+            show_trips(trips, routes)
+
+        elif choice == "0":
+            save_routes(DATA_ROUTES, routes)
+            save_trips(DATA_TRIPS, trips)
+            print("Данные сохранены. До встречи!")
+            break
+
+        else:
+            print("Неизвестная команда.")
+
+
+if __name__ == "__main__":
+    main()

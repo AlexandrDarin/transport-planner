@@ -1,0 +1,14 @@
+{
+  "1": {
+    "number": "А-42",
+    "transport_type": "Автобус",
+    "base_price": 50.0,
+    "travel_time_minutes": 35
+  },
+  "2": {
+    "number": "Т-3",
+    "transport_type": "Трамвай",
+    "base_price": 40.0,
+    "travel_time_minutes": 25
+  }
+}
