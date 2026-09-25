@@ -1,29 +1,31 @@
 import pytest
 
+from models import User, Route, Stop
+
+
+@pytest.fixture
+def sample_user():
+    return User(1, "Иван Иванов", 22, has_benefits=False)
+
+
+@pytest.fixture
+def sample_benefit_user():
+    return User(2, "Пётр Петров", 70, has_benefits=True)
+
 
 @pytest.fixture
 def sample_route():
-    """Маршрут с базовыми параметрами."""
-    return {
-        "number": "А-42",
-        "transport_type": "Автобус",
-        "base_price": 50.0,
-        "travel_time_minutes": 35,
-        "stops_count": 8,
-    }
+    return Route(1, "А-42", "Автобус", 50.0, 35)
 
 
 @pytest.fixture
 def sample_stops():
-    """Пара остановок."""
-    return ("Улица Ленина", "Площадь Победы")
+    return (Stop(1, "Улица Ленина", "Москва"),
+            Stop(2, "Площадь Победы", "Москва"))
 
 
 @pytest.fixture
 def temporary_data():
-    """Фикстура с очисткой после теста."""
     data = [1, 2, 3, 4, 5]
-    print("Данные подготовлены:", data)
     yield data
     data.clear()
-    print(f"{data} - пусто, данные очищены!")

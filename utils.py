@@ -28,3 +28,4 @@ def input_date(prompt: str):
             return datetime.strptime(input(prompt), "%d.%m.%Y").date()
         except ValueError:
             print("Ошибка: формат даты ДД.ММ.ГГГГ. Попробуйте снова.")
+            

@@ -3,7 +3,8 @@
 from datetime import date
 
 
-def is_route_free(trips: list[dict], route_id: int, trip_date: date) -> bool:
+def is_route_free(trips: list[dict], route_id: int,
+                  trip_date: date) -> bool:
     """Свободен ли маршрут на указанную дату."""
     for t in trips:
         if t["route_id"] == route_id and t["date"] == str(trip_date):
@@ -12,7 +13,7 @@ def is_route_free(trips: list[dict], route_id: int, trip_date: date) -> bool:
 
 
 def create_trip(trips: list[dict], route_id: int, trip_date: date,
-                user_name: str):
+                user_id: int, stop_from_id: int, stop_to_id: int):
     """Создать поездку, если маршрут свободен на эту дату."""
     if not is_route_free(trips, route_id, trip_date):
         return None
@@ -20,8 +21,10 @@ def create_trip(trips: list[dict], route_id: int, trip_date: date,
     trip = {
         "id": trip_id,
         "route_id": route_id,
+        "user_id": user_id,
+        "stop_from_id": stop_from_id,
+        "stop_to_id": stop_to_id,
         "date": str(trip_date),
-        "user_name": user_name,
     }
     trips.append(trip)
     return trip
@@ -36,9 +39,9 @@ def cancel_trip(trips: list[dict], trip_id: int) -> bool:
     return False
 
 
-def find_trips_by_user(trips: list[dict], user_name: str) -> list[dict]:
-    """Найти все поездки пользователя."""
-    return [t for t in trips if t["user_name"].lower() == user_name.lower()]
+def find_trips_by_user(trips: list[dict], user_id: int) -> list[dict]:
+    """Найти все поездки пользователя по id."""
+    return [t for t in trips if t["user_id"] == user_id]
 
 
 def get_trip_summary(user_name: str, route_number: str, stop_from: str,

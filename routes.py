@@ -1,14 +1,14 @@
 """Функции для работы с маршрутами."""
 
-from datetime import date
 
-
-def is_route_available(route_number: str, stop_from: str, stop_to: str) -> bool:
+def is_route_available(route_number: str, stop_from: str,
+                       stop_to: str) -> bool:
     """Проверка доступности маршрута (функция из ПР1)."""
     return bool(route_number and stop_from and stop_to)
 
 
-def calculate_travel_time(travel_time_minutes: int, stops_count: int) -> int:
+def calculate_travel_time(travel_time_minutes: int,
+                          stops_count: int) -> int:
     """Расчёт времени поездки (функция из ПР1)."""
     return travel_time_minutes + stops_count
 
@@ -52,7 +52,8 @@ def find_routes(routes: dict[int, dict], query: str) -> dict[int, dict]:
 def filter_routes_by_price(routes: dict[int, dict],
                            max_price: float) -> dict[int, dict]:
     """Отобрать маршруты с ценой не выше max_price."""
-    return {rid: r for rid, r in routes.items() if r["base_price"] <= max_price}
+    return {rid: r for rid, r in routes.items()
+            if r["base_price"] <= max_price}
 
 
 def sort_routes(routes: dict[int, dict]) -> list[tuple[int, dict]]:
@@ -70,4 +71,4 @@ def route_statistics(routes: dict[int, dict]) -> dict:
         "min_price": min(prices),
         "max_price": max(prices),
         "avg_price": round(sum(prices) / len(prices), 2),
-    }   
+    }

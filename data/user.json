@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "name": "Иван Иванов",
+    "age": 22,
+    "has_benefits": false
+  },
+  {
+    "id": 2,
+    "name": "Пётр Петров",
+    "age": 70,
+    "has_benefits": true
+  }
+]   

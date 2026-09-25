@@ -1,58 +1,94 @@
 """Сервис планирования поездок на общественном транспорте.
 
 Точка входа: меню приложения.
-Бизнес-логика вынесена в модули routes.py, trips.py, storage.py, utils.py.
+Объектная модель — в пакете models.
 """
 
-# Импорт функций из модулей проекта.
-# Функции is_route_available, calculate_travel_time, calculate_price
-# сохранены в main для совместимости с tests/test_main.py из ПР1.
-from routes import (
+from typing import List
+
+# Совместимость с тестами ПР1/ПР2
+from models.routes import (
     is_route_available,
     calculate_travel_time,
     calculate_price,
     get_route_status,
-    add_route,
     find_routes,
     filter_routes_by_price,
     sort_routes,
     route_statistics,
 )
-from trips import (
+from models.trips import (
     is_route_free,
     create_trip,
     cancel_trip,
     find_trips_by_user,
     get_trip_summary,
 )
-from storage import load_routes, save_routes, load_trips, save_trips
+from models.users import (
+    add_user,
+    find_user_by_id,
+    find_users_by_name,
+    user_statistics,
+)
+from models.stops import (
+    add_stop,
+    find_stop_by_id,
+    find_stops_by_name,
+    filter_stops_by_city,
+    sort_stops_by_name,
+)
+from models import User, Route, Stop, Trip
+
+from storage import (
+    load_users, save_users,
+    load_routes, save_routes,
+    load_stops, save_stops,
+    load_trips, save_trips,
+)
 from utils import input_int, input_float, input_date
 
 
+DATA_USERS = "data/users.json"
 DATA_ROUTES = "data/routes.json"
+DATA_STOPS = "data/stops.json"
 DATA_TRIPS = "data/trips.json"
 
 
-def show_routes(routes: dict) -> None:
+def show_users(users: List[User]) -> None:
+    """Вывести список пользователей."""
+    if not users:
+        print("Пользователей пока нет.")
+        return
+    for u in users:
+        print(f"{u.id:<4}{u.name:<20}{u.age:<10}{str(u.has_benefits):<8}")
+
+
+def show_stops(stops: List[Stop]) -> None:
+    """Вывести список остановок."""
+    if not stops:
+        print("Остановок пока нет.")
+        return
+    for s in stops:
+        print(f"{s.id:<4}{s.name:<25}{s.city:<15}")
+
+
+def show_routes(routes: List[Route]) -> None:
     """Вывести список маршрутов."""
     if not routes:
         print("Маршрутов пока нет.")
         return
-    print(f"{'ID':<4}{'Номер':<10}{'Транспорт':<12}{'Цена':<10}{'Время':<8}")
-    for rid, r in routes.items():
-        print(f"{rid:<4}{r['number']:<10}{r['transport_type']:<12}"
-              f"{r['base_price']:<10}{r['travel_time_minutes']:<8}")
+    for r in routes:
+        print(f"{r.id:<4}{r.number:<10}{r.transport_type:<12}"
+              f"{r.base_price:<10}{r.travel_time_minutes:<8}")
 
 
-def show_trips(trips: list, routes: dict) -> None:
+def show_trips(trips: List[Trip]) -> None:
     """Вывести список поездок."""
     if not trips:
         print("Поездок пока нет.")
         return
     for t in trips:
-        route = routes.get(t["route_id"], {})
-        print(f"#{t['id']} | {t['date']} | "
-              f"маршрут {route.get('number', '?')} | {t['user_name']}")
+        print(t)
 
 
 def menu() -> None:
@@ -63,17 +99,59 @@ def menu() -> None:
     print("3. Отобрать по цене")
     print("4. Сортировать по цене")
     print("5. Статистика по маршрутам")
-    print("6. Проверить доступность маршрута на дату")
-    print("7. Забронировать поездку")
-    print("8. Отменить поездку")
-    print("9. Показать поездки")
+    print("6. Показать пользователей")
+    print("7. Найти пользователя")
+    print("8. Показать остановки")
+    print("9. Найти остановку")
+    print("10. Проверить доступность маршрута на дату")
+    print("11. Забронировать поездку")
+    print("12. Отменить поездку")
+    print("13. Показать поездки")
     print("0. Выход")
+
+
+def create_new_trip(trips: List[Trip], routes: List[Route],
+                    users: List[User], stops: List[Stop]) -> None:
+    """Сценарий создания поездки через меню."""
+    route_id = input_int("ID маршрута: ")
+    route = next((r for r in routes if r.id == route_id), None)
+    if route is None:
+        print("Маршрут не найден.")
+        return
+
+    user_id = input_int("ID пользователя: ")
+    user = find_user_by_id(users, user_id)
+    if user is None:
+        print("Пользователь не найден.")
+        return
+
+    stop_from_id = input_int("ID остановки отправления: ")
+    stop_from = find_stop_by_id(stops, stop_from_id)
+    if stop_from is None:
+        print("Остановка отправления не найдена.")
+        return
+
+    stop_to_id = input_int("ID остановки назначения: ")
+    stop_to = find_stop_by_id(stops, stop_to_id)
+    if stop_to is None:
+        print("Остановка назначения не найдена.")
+        return
+
+    d = input_date("Дата (ДД.ММ.ГГГГ): ")
+    trip = create_trip(trips, route, user, stop_from, stop_to, d)
+    if trip:
+        save_trips(DATA_TRIPS, trips)
+        print(f"Поездка #{trip.id} создана.")
+    else:
+        print("Маршрут уже занят на эту дату.")
 
 
 def main() -> None:
     """Точка запуска приложения."""
+    users = load_users(DATA_USERS)
     routes = load_routes(DATA_ROUTES)
-    trips = load_trips(DATA_TRIPS)
+    stops = load_stops(DATA_STOPS)
+    trips = load_trips(DATA_TRIPS, routes, users, stops)
 
     while True:
         menu()
@@ -81,58 +159,52 @@ def main() -> None:
 
         if choice == "1":
             show_routes(routes)
-
         elif choice == "2":
-            q = input("Подстрока для поиска: ")
-            show_routes(find_routes(routes, q))
-
+            show_routes(find_routes(routes, input("Подстрока: ")))
         elif choice == "3":
-            max_price = input_float("Максимальная цена: ")
-            show_routes(filter_routes_by_price(routes, max_price))
-
+            show_routes(filter_routes_by_price(
+                routes, input_float("Максимальная цена: ")))
         elif choice == "4":
-            for rid, r in sort_routes(routes):
-                print(f"{rid}: {r['number']} — {r['base_price']} руб.")
-
+            for r in sort_routes(routes):
+                print(f"{r.id}: {r.number} — {r.base_price} руб.")
         elif choice == "5":
             stats = route_statistics(routes)
             print(f"Всего: {stats['count']}, мин: {stats['min_price']}, "
                   f"макс: {stats['max_price']}, средняя: {stats['avg_price']}")
-
         elif choice == "6":
-            route_id = input_int("ID маршрута: ")
-            d = input_date("Дата (ДД.ММ.ГГГГ): ")
-            free = is_route_free(trips, route_id, d)
-            print(get_route_status(free))
-
+            show_users(users)
         elif choice == "7":
-            route_id = input_int("ID маршрута: ")
-            user = input("Имя пассажира: ")
-            d = input_date("Дата (ДД.ММ.ГГГГ): ")
-            trip = create_trip(trips, route_id, d, user)
-            if trip:
-                save_trips(DATA_TRIPS, trips)
-                print(f"Поездка #{trip['id']} создана.")
-            else:
-                print("Маршрут уже занят на эту дату.")
-
+            show_users(find_users_by_name(users, input("Подстрока: ")))
         elif choice == "8":
+            show_stops(stops)
+        elif choice == "9":
+            show_stops(find_stops_by_name(stops, input("Подстрока: ")))
+        elif choice == "10":
+            route_id = input_int("ID маршрута: ")
+            route = next((r for r in routes if r.id == route_id), None)
+            if route is None:
+                print("Маршрут не найден.")
+                continue
+            d = input_date("Дата (ДД.ММ.ГГГГ): ")
+            print(get_route_status(is_route_free(trips, route, d)))
+        elif choice == "11":
+            create_new_trip(trips, routes, users, stops)
+        elif choice == "12":
             trip_id = input_int("ID поездки: ")
             if cancel_trip(trips, trip_id):
                 save_trips(DATA_TRIPS, trips)
                 print("Поездка отменена.")
             else:
                 print("Поездка не найдена.")
-
-        elif choice == "9":
-            show_trips(trips, routes)
-
+        elif choice == "13":
+            show_trips(trips)
         elif choice == "0":
+            save_users(DATA_USERS, users)
             save_routes(DATA_ROUTES, routes)
+            save_stops(DATA_STOPS, stops)
             save_trips(DATA_TRIPS, trips)
             print("Данные сохранены. До встречи!")
             break
-
         else:
             print("Неизвестная команда.")
 
