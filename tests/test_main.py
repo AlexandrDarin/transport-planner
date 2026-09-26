@@ -47,17 +47,19 @@ def test_type_of_travel_time():
 
 @pytest.mark.smoke
 def test_route_available(sample_route, sample_stops):
+    """Проверка доступности маршрута через объект Route (ПР3)."""
     stop_from, stop_to = sample_stops
     assert is_route_available(
-        sample_route["number"], stop_from, stop_to
+        sample_route.number, stop_from.name, stop_to.name
     ) is True
 
 
 @pytest.mark.regression
 def test_travel_time(sample_route):
+    """Расчёт времени поездки через атрибуты объекта Route (ПР3)."""
     assert calculate_travel_time(
-        sample_route["travel_time_minutes"],
-        sample_route["stops_count"],
+        sample_route.travel_time_minutes,
+        8,
     ) == 43
 
 
