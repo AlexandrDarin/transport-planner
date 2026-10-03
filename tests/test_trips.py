@@ -54,7 +54,8 @@ def test_is_route_free():
 def test_create_trip():
     user, route, stop_a, stop_b = _make_objects()
     trips = []
-    trip = create_trip(trips, route, user, stop_a, stop_b, date(2026, 9, 15))
+    trip = create_trip(trips, route, user, stop_a, stop_b,
+                       date(2026, 9, 15))
     assert trip is not None
     assert len(trips) == 1
 
@@ -63,7 +64,8 @@ def test_duplicate_trip_forbidden():
     user, route, stop_a, stop_b = _make_objects()
     trips = []
     create_trip(trips, route, user, stop_a, stop_b, date(2026, 9, 15))
-    trip2 = create_trip(trips, route, user, stop_a, stop_b, date(2026, 9, 15))
+    trip2 = create_trip(trips, route, user, stop_a, stop_b,
+                        date(2026, 9, 15))
     assert trip2 is None
 
 
@@ -72,7 +74,8 @@ def test_cancel_trip_allows_new():
     trips = []
     create_trip(trips, route, user, stop_a, stop_b, date(2026, 9, 15))
     cancel_trip(trips, 1)
-    trip2 = create_trip(trips, route, user, stop_a, stop_b, date(2026, 9, 15))
+    trip2 = create_trip(trips, route, user, stop_a, stop_b,
+                        date(2026, 9, 15))
     assert trip2 is not None
 
 

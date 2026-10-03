@@ -5,10 +5,6 @@ import os
 from typing import List
 
 from models import User, Route, Stop, Trip
-from models.users import User as _User
-from models.routes import Route as _Route
-from models.stops import Stop as _Stop
-from models.trips import Trip as _Trip
 
 
 def _read_json(filename: str, default):

@@ -33,16 +33,24 @@ class Trip:
 
     @classmethod
     def from_data(cls, data: dict, routes: List[Route],
-                  users: List[User], stops: List[Stop]) -> Optional["Trip"]:
+                  users: List[User],
+                  stops: List[Stop]) -> Optional["Trip"]:
         """Создать поездку из данных JSON, восстановив связи."""
+        required = ("id", "route_id", "user_id",
+                    "stop_from_id", "stop_to_id", "date")
+        if not all(key in data for key in required):
+            return None
+
         route = next((r for r in routes if r.id == data["route_id"]), None)
         user = next((u for u in users if u.id == data["user_id"]), None)
         stop_from = next((s for s in stops
                           if s.id == data["stop_from_id"]), None)
         stop_to = next((s for s in stops
                         if s.id == data["stop_to_id"]), None)
+
         if not (route and user and stop_from and stop_to):
             return None
+
         trip = cls(
             trip_id=data["id"],
             route=route,

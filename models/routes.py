@@ -81,7 +81,7 @@ def filter_routes_by_price(routes: List[Route],
 
 
 def sort_routes(routes: List[Route]) -> List[Route]:
-    """Отсортировать маршруты по цене (lambda)."""
+    """Отсортировать маршруты по цене."""
     return sorted(routes, key=lambda r: r.base_price)
 
 

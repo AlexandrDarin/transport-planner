@@ -10,5 +10,11 @@
     "transport_type": "Трамвай",
     "base_price": 40.0,
     "travel_time_minutes": 25
+  },
+  "3": {
+    "number": "М-7",
+    "transport_type": "Метро",
+    "base_price": 60.0,
+    "travel_time_minutes": 15
   }
 }

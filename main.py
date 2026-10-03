@@ -59,8 +59,10 @@ def show_users(users: List[User]) -> None:
     if not users:
         print("Пользователей пока нет.")
         return
+    print(f"{'ID':<4}{'Имя':<20}{'Возраст':<10}{'Льготы':<8}")
     for u in users:
-        print(f"{u.id:<4}{u.name:<20}{u.age:<10}{str(u.has_benefits):<8}")
+        print(f"{u.id:<4}{u.name:<20}{u.age:<10}"
+              f"{str(u.has_benefits):<8}")
 
 
 def show_stops(stops: List[Stop]) -> None:
@@ -68,6 +70,7 @@ def show_stops(stops: List[Stop]) -> None:
     if not stops:
         print("Остановок пока нет.")
         return
+    print(f"{'ID':<4}{'Название':<25}{'Город':<15}")
     for s in stops:
         print(f"{s.id:<4}{s.name:<25}{s.city:<15}")
 
@@ -77,6 +80,8 @@ def show_routes(routes: List[Route]) -> None:
     if not routes:
         print("Маршрутов пока нет.")
         return
+    print(f"{'ID':<4}{'Номер':<10}{'Транспорт':<12}"
+          f"{'Цена':<10}{'Время':<8}")
     for r in routes:
         print(f"{r.id:<4}{r.number:<10}{r.transport_type:<12}"
               f"{r.base_price:<10}{r.travel_time_minutes:<8}")
@@ -87,8 +92,12 @@ def show_trips(trips: List[Trip]) -> None:
     if not trips:
         print("Поездок пока нет.")
         return
+    print(f"{'ID':<4}{'Дата':<12}{'Маршрут':<10}"
+          f"{'Пассажир':<20}{'Статус':<12}")
     for t in trips:
-        print(t)
+        status = "отменена" if t.is_cancelled else "активна"
+        print(f"{t.id:<4}{str(t.date):<12}{t.route.number:<10}"
+              f"{t.user.name:<20}{status:<12}")
 
 
 def menu() -> None:
@@ -112,19 +121,22 @@ def menu() -> None:
 
 def create_new_trip(trips: List[Trip], routes: List[Route],
                     users: List[User], stops: List[Stop]) -> None:
-    """Сценарий создания поездки через меню."""
+    """Сценарий создания поездки."""
+    show_routes(routes)
     route_id = input_int("ID маршрута: ")
     route = next((r for r in routes if r.id == route_id), None)
     if route is None:
         print("Маршрут не найден.")
         return
 
+    show_users(users)
     user_id = input_int("ID пользователя: ")
     user = find_user_by_id(users, user_id)
     if user is None:
         print("Пользователь не найден.")
         return
 
+    show_stops(stops)
     stop_from_id = input_int("ID остановки отправления: ")
     stop_from = find_stop_by_id(stops, stop_from_id)
     if stop_from is None:
@@ -142,6 +154,7 @@ def create_new_trip(trips: List[Trip], routes: List[Route],
     if trip:
         save_trips(DATA_TRIPS, trips)
         print(f"Поездка #{trip.id} создана.")
+        print(get_trip_summary(trip))
     else:
         print("Маршрут уже занят на эту дату.")
 
@@ -160,26 +173,32 @@ def main() -> None:
         if choice == "1":
             show_routes(routes)
         elif choice == "2":
-            show_routes(find_routes(routes, input("Подстрока: ")))
+            q = input("Подстрока для поиска: ")
+            show_routes(find_routes(routes, q))
         elif choice == "3":
-            show_routes(filter_routes_by_price(
-                routes, input_float("Максимальная цена: ")))
+            max_price = input_float("Максимальная цена: ")
+            show_routes(filter_routes_by_price(routes, max_price))
         elif choice == "4":
             for r in sort_routes(routes):
                 print(f"{r.id}: {r.number} — {r.base_price} руб.")
         elif choice == "5":
             stats = route_statistics(routes)
-            print(f"Всего: {stats['count']}, мин: {stats['min_price']}, "
-                  f"макс: {stats['max_price']}, средняя: {stats['avg_price']}")
+            print(f"Всего: {stats['count']}, "
+                  f"мин: {stats['min_price']}, "
+                  f"макс: {stats['max_price']}, "
+                  f"средняя: {stats['avg_price']}")
         elif choice == "6":
             show_users(users)
         elif choice == "7":
-            show_users(find_users_by_name(users, input("Подстрока: ")))
+            q = input("Подстрока для поиска: ")
+            show_users(find_users_by_name(users, q))
         elif choice == "8":
             show_stops(stops)
         elif choice == "9":
-            show_stops(find_stops_by_name(stops, input("Подстрока: ")))
+            q = input("Подстрока для поиска: ")
+            show_stops(find_stops_by_name(stops, q))
         elif choice == "10":
+            show_routes(routes)
             route_id = input_int("ID маршрута: ")
             route = next((r for r in routes if r.id == route_id), None)
             if route is None:
@@ -190,6 +209,7 @@ def main() -> None:
         elif choice == "11":
             create_new_trip(trips, routes, users, stops)
         elif choice == "12":
+            show_trips(trips)
             trip_id = input_int("ID поездки: ")
             if cancel_trip(trips, trip_id):
                 save_trips(DATA_TRIPS, trips)

@@ -3,10 +3,10 @@ import sys
 
 import pytest
 
-# Добавляем корень проекта в sys.path, чтобы импортировать main.py
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
-from main import (
+from main import (           # noqa: E402
     is_route_available,
     calculate_travel_time,
     calculate_price,
@@ -18,11 +18,13 @@ from main import (
 # ============================================================
 
 def test_add_route_available():
-    assert is_route_available("А-42", "Улица Ленина", "Площадь Победы") is True
+    assert is_route_available("А-42", "Улица Ленина",
+                              "Площадь Победы") is True
 
 
 def test_add_route_unavailable():
-    assert is_route_available("", "Улица Ленина", "Площадь Победы") is False
+    assert is_route_available("", "Улица Ленина",
+                              "Площадь Победы") is False
 
 
 def test_calculate_travel_time():
@@ -47,7 +49,6 @@ def test_type_of_travel_time():
 
 @pytest.mark.smoke
 def test_route_available(sample_route, sample_stops):
-    """Проверка доступности маршрута через объект Route (ПР3)."""
     stop_from, stop_to = sample_stops
     assert is_route_available(
         sample_route.number, stop_from.name, stop_to.name
@@ -56,10 +57,8 @@ def test_route_available(sample_route, sample_stops):
 
 @pytest.mark.regression
 def test_travel_time(sample_route):
-    """Расчёт времени поездки через атрибуты объекта Route (ПР3)."""
     assert calculate_travel_time(
-        sample_route.travel_time_minutes,
-        8,
+        sample_route.travel_time_minutes, 8
     ) == 43
 
 
@@ -74,10 +73,10 @@ def test_broken_feature():
 
 
 @pytest.mark.parametrize("base_price, has_benefits, expected", [
-    (50.0,  False, 50.0),
-    (50.0,  True,  25.0),
+    (50.0, False, 50.0),
+    (50.0, True, 25.0),
     (100.0, False, 100.0),
-    (100.0, True,  50.0),
+    (100.0, True, 50.0),
 ])
 def test_calculate_price_parametrized(base_price, has_benefits, expected):
     assert calculate_price(base_price, has_benefits) == expected
@@ -86,7 +85,7 @@ def test_calculate_price_parametrized(base_price, has_benefits, expected):
 @pytest.mark.parametrize("minutes, stops, expected", [
     (35, 8, 43),
     (10, 0, 10),
-    (0,  5,  5),
+    (0, 5, 5),
 ])
 def test_travel_time_parametrized(minutes, stops, expected):
     assert calculate_travel_time(minutes, stops) == expected
