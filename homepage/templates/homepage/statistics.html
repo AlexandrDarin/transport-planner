@@ -1,1 +1,125 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-3">Статистика</h1><div class="row g-3 mb-4"><div class="col-md-4"><div class="stat-card"><div class="stat-value">{{ summary.total_trips|default:0 }}</div><div class="stat-label">всего поездок</div></div></div><div class="col-md-4"><div class="stat-card"><div class="stat-value">{{ summary.active_trips|default:0 }}</div><div class="stat-label">активных</div></div></div><div class="col-md-4"><div class="stat-card"><div class="stat-value">{{ summary.cancelled_trips|default:0 }}</div><div class="stat-label">отменённых</div></div></div></div><h2 class="h5">Количество поездок по маршрутам</h2><div class="table-responsive card mb-4"><table class="table mb-0"><thead><tr><th>Маршрут</th><th>Количество поездок</th></tr></thead><tbody>{% for item in route_stats %}<tr><td><a href="{% url 'routes:detail' item.id %}">{{ item.number }}</a></td><td>{{ item.trip_count }}</td></tr>{% empty %}<tr><td colspan="2">Данных пока нет.</td></tr>{% endfor %}</tbody></table></div><h2 class="h5">Фильтр популярных маршрутов (HAVING)</h2><form method="get" class="row g-2 align-items-end mb-3"><div class="col-auto"><label for="min_trips" class="form-label">Больше чем поездок</label><input id="min_trips" class="form-control" type="number" min="0" name="min_trips" value="{{ min_trips }}"></div><div class="col-auto"><button class="btn btn-primary">Применить</button></div></form><div class="list-group">{% for item in popular_routes %}<div class="list-group-item d-flex justify-content-between"><span>{{ item.number }}</span><span class="badge text-bg-primary">{{ item.trip_count }}</span></div>{% empty %}<div class="list-group-item text-secondary">Маршрутов с таким количеством поездок нет.</div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Статистика – Сервис планирования поездок{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">Статистика</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="stat-card">
+        <div class="stat-value">{{ summary.total_trips|default:0 }}</div>
+        <div class="stat-label">всего поездок</div>
+    </div></div>
+    <div class="col-6 col-md-3"><div class="stat-card">
+        <div class="stat-value">{{ summary.active_trips|default:0 }}</div>
+        <div class="stat-label">активных</div>
+    </div></div>
+    <div class="col-6 col-md-3"><div class="stat-card">
+        <div class="stat-value">{{ summary.cancelled_trips|default:0 }}</div>
+        <div class="stat-label">отменённых</div>
+    </div></div>
+    <div class="col-6 col-md-3"><div class="stat-card">
+        <div class="stat-value">{{ revenue.total|default:0|floatformat:0 }} ₽</div>
+        <div class="stat-label">стоимость активных поездок</div>
+    </div></div>
+</div>
+
+<h2 class="h5">Количество активных поездок по маршрутам</h2>
+<div class="table-responsive card mb-4">
+    <table class="table mb-0">
+        <thead><tr><th>Маршрут</th><th>Поездок</th></tr></thead>
+        <tbody>
+            {% for item in route_stats %}
+            <tr>
+                <td><a href="{% url 'routes:detail' item.id %}">{{ item.number }}</a></td>
+                <td>{{ item.trip_count }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2">Данных пока нет.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2 class="h5">Популярные маршруты (HAVING)</h2>
+<form method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-auto">
+        <label for="min_trips" class="form-label">Активных поездок не меньше</label>
+        <input id="min_trips" class="form-control" type="number" min="0"
+               name="min_trips" value="{{ min_trips }}">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary" type="submit">Применить</button>
+    </div>
+</form>
+<div class="list-group mb-4">
+    {% for item in popular_routes %}
+        <div class="list-group-item d-flex justify-content-between">
+            <span>{{ item.number }}</span>
+            <span class="badge text-bg-primary">{{ item.trip_count }}</span>
+        </div>
+    {% empty %}
+        <div class="list-group-item text-secondary">
+            Маршрутов с таким количеством поездок нет.
+        </div>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <h2 class="h5">Виды транспорта (GROUP BY)</h2>
+        <div class="table-responsive card"><table class="table mb-0">
+            <thead><tr><th>Вид</th><th>Маршрутов</th><th>Средняя цена</th></tr></thead>
+            <tbody>
+                {% for item in type_stats %}
+                <tr>
+                    <td>{{ item.transport_type }}</td>
+                    <td>{{ item.routes_count }}</td>
+                    <td>{{ item.avg_price|floatformat:2 }} ₽</td>
+                </tr>
+                {% empty %}<tr><td colspan="3">Данных нет.</td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </div>
+    <div class="col-lg-6">
+        <h2 class="h5">Пассажиры и траты</h2>
+        <div class="table-responsive card"><table class="table mb-0">
+            <thead><tr><th>Пассажир</th><th>Активных поездок</th><th>Сумма</th></tr></thead>
+            <tbody>
+                {% for item in user_stats %}
+                <tr>
+                    <td><a href="{% url 'users:detail' item.id %}">{{ item.name }}</a></td>
+                    <td>{{ item.trips_count }}</td>
+                    <td>{{ item.total_spent|floatformat:2 }} ₽</td>
+                </tr>
+                {% empty %}<tr><td colspan="3">Данных нет.</td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </div>
+    <div class="col-lg-6">
+        <h2 class="h5">Остановки по городам</h2>
+        <div class="table-responsive card"><table class="table mb-0">
+            <thead><tr><th>Город</th><th>Остановок</th></tr></thead>
+            <tbody>
+                {% for item in city_stats %}
+                <tr><td>{{ item.city }}</td><td>{{ item.stops_count }}</td></tr>
+                {% empty %}<tr><td colspan="2">Данных нет.</td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </div>
+    <div class="col-lg-6">
+        <h2 class="h5">Самые загруженные остановки (топ-3)</h2>
+        <div class="table-responsive card"><table class="table mb-0">
+            <thead><tr><th>Остановка</th><th>Отправлений</th></tr></thead>
+            <tbody>
+                {% for item in top_stops %}
+                <tr>
+                    <td><a href="{% url 'stops:detail' item.id %}">{{ item.name }}</a></td>
+                    <td>{{ item.departures }}</td>
+                </tr>
+                {% empty %}<tr><td colspan="2">Данных нет.</td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </div>
+</div>
+{% endblock %}

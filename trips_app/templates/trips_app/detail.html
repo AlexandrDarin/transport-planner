@@ -1,1 +1,38 @@
-{% extends "base.html" %}{% block content %}<p><a href="{% url 'trips:list' %}">← Все поездки</a></p><div class="card"><div class="card-body"><div class="d-flex justify-content-between"><h1 class="h3">Поездка №{{ trip.id }}</h1><span class="badge align-self-start {% if trip.is_cancelled %}text-bg-secondary{% else %}text-bg-success{% endif %}">{% if trip.is_cancelled %}Отменена{% else %}Активна{% endif %}</span></div><hr><p><strong>Маршрут:</strong> <a href="{% url 'routes:detail' trip.route_id %}">{{ trip.route_number }}</a> ({{ trip.transport_type }})</p><p><strong>Пассажир:</strong> <a href="{% url 'users:detail' trip.user_id %}">{{ trip.passenger }}</a></p><p><strong>Льготы:</strong> {% if trip.has_benefits %}есть (скидка 50%){% else %}нет{% endif %}</p><p><strong>Откуда:</strong> {{ trip.origin }}</p><p><strong>Куда:</strong> {{ trip.destination }}</p><p><strong>Дата:</strong> {{ trip.trip_date|date:"d.m.Y" }}</p><p class="fs-5"><strong>Стоимость:</strong> {{ trip.price|floatformat:2 }} ₽</p></div></div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}
+    {% if trip %}Поездка №{{ trip.id }}{% else %}Поездка не найдена{% endif %}
+    – Сервис планирования поездок
+{% endblock %}
+
+{% block content %}
+{% if trip %}
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <h1 class="h3">Поездка №{{ trip.id }}</h1>
+                <span class="align-self-start">{% include "trips_app/includes/trip_status.html" %}</span>
+            </div>
+            <hr>
+            <p><strong>Маршрут:</strong>
+                <a href="{% url 'routes:detail' trip.route_id %}">{{ trip.route_number }}</a>
+                ({{ trip.transport_type }})</p>
+            <p><strong>Пассажир:</strong>
+                <a href="{% url 'users:detail' trip.user_id %}">{{ trip.passenger }}</a></p>
+            <p><strong>Льготы:</strong>
+                {% if trip.has_benefits %}есть (скидка 50%){% else %}нет{% endif %}</p>
+            <p><strong>Откуда:</strong>
+                <a href="{% url 'stops:detail' trip.stop_from_id %}">{{ trip.origin }}</a></p>
+            <p><strong>Куда:</strong>
+                <a href="{% url 'stops:detail' trip.stop_to_id %}">{{ trip.destination }}</a></p>
+            <p><strong>Дата:</strong> {{ trip.trip_date }}</p>
+            <p class="fs-5"><strong>Стоимость:</strong> {{ trip.price|floatformat:2 }} ₽</p>
+        </div>
+    </div>
+{% else %}
+    <h1 class="text-danger">Поездка не найдена</h1>
+    <p>Поездка с указанным идентификатором отсутствует.</p>
+{% endif %}
+
+<a href="{% url 'trips:list' %}" class="btn btn-outline-secondary mt-3">← к списку поездок</a>
+{% endblock %}

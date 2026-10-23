@@ -1,1 +1,34 @@
-{% extends "base.html" %}{% block content %}<p><a href="{% url 'stops:list' %}">← Все остановки</a></p><div class="card mb-4"><div class="card-body"><h1 class="h3">{{ stop.name }}</h1><p><strong>Город:</strong> {{ stop.city }}</p><p><strong>ID:</strong> {{ stop.id }}</p></div></div><h2 class="h5">Связанные поездки</h2><div class="list-group">{% for trip in trips %}<a class="list-group-item list-group-item-action" href="{% url 'trips:detail' trip.id %}">Поездка №{{ trip.id }} · маршрут {{ trip.number }} · {{ trip.trip_date }}{% if trip.is_cancelled %} · отменена{% endif %}</a>{% empty %}<div class="list-group-item text-secondary">Поездок с этой остановкой пока нет.</div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}
+    {% if stop %}{{ stop.name }}{% else %}Остановка не найдена{% endif %}
+    – Сервис планирования поездок
+{% endblock %}
+
+{% block content %}
+{% if stop %}
+    <div class="card mb-4"><div class="card-body">
+        <h1 class="h3">{{ stop.name }}</h1>
+        <p><strong>Город:</strong> {{ stop.city }}</p>
+        <p><strong>ID:</strong> {{ stop.id }}</p>
+    </div></div>
+
+    <h2 class="h5">Связанные поездки</h2>
+    <div class="list-group">
+        {% for trip in trips %}
+            <a class="list-group-item list-group-item-action d-flex justify-content-between"
+               href="{% url 'trips:detail' trip.id %}">
+                <span>Поездка №{{ trip.id }} · маршрут {{ trip.number }} · {{ trip.trip_date }}</span>
+                {% include "trips_app/includes/trip_status.html" %}
+            </a>
+        {% empty %}
+            <div class="list-group-item text-secondary">Поездок с этой остановкой пока нет.</div>
+        {% endfor %}
+    </div>
+{% else %}
+    <h1 class="text-danger">Остановка не найдена</h1>
+    <p>Остановка с указанным идентификатором отсутствует.</p>
+{% endif %}
+
+<a href="{% url 'stops:list' %}" class="btn btn-outline-secondary mt-3">← к списку остановок</a>
+{% endblock %}

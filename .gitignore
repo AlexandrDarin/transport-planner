@@ -7,4 +7,3 @@ venv/
 .vscode/
 .pytest_cache/
 db.sqlite3
-data/transport_planner.sqlite3

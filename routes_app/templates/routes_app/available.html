@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Свободные маршруты – Сервис планирования поездок{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">Свободные маршруты</h1>
+<p class="text-secondary">
+    Маршрут свободен на дату, если на неё нет ни одной активной поездки.
+</p>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-auto">
+        <label class="form-label" for="date">Дата:</label>
+        <input class="form-control" type="date" id="date" name="date"
+               value="{{ trip_date }}">
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-primary" type="submit">Найти</button>
+    </div>
+</form>
+
+{% if trip_date %}
+    <h2 class="h5">Дата: {{ trip_date }}</h2>
+    <div class="row g-3">
+        {% for route in routes %}
+            {% include "routes_app/includes/route_card.html" %}
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    На выбранную дату свободных маршрутов нет.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<a href="{% url 'routes:list' %}" class="btn btn-outline-secondary mt-3">← к списку маршрутов</a>
+{% endblock %}

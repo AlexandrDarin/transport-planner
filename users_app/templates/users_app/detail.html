@@ -1,1 +1,38 @@
-{% extends "base.html" %}{% block content %}<p><a href="{% url 'users:list' %}">← Все пользователи</a></p><div class="card mb-4"><div class="card-body"><h1 class="h3">{{ user.name }}</h1><p><strong>Возраст:</strong> {{ user.age }} лет</p><p><strong>Льготы:</strong> {% if user.has_benefits %}есть, скидка 50%{% else %}нет{% endif %}</p><p><strong>Количество поездок:</strong> {{ trips|length }}</p></div></div><h2 class="h5">Поездки пассажира</h2><div class="list-group">{% for trip in trips %}<a class="list-group-item list-group-item-action" href="{% url 'trips:detail' trip.id %}">Поездка №{{ trip.id }} · маршрут {{ trip.number }} · {{ trip.trip_date }}{% if trip.is_cancelled %} · отменена{% endif %}</a>{% empty %}<div class="list-group-item text-secondary">Поездок пока нет.</div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}
+    {% if user_item %}{{ user_item.name }}{% else %}Пользователь не найден{% endif %}
+    – Сервис планирования поездок
+{% endblock %}
+
+{% block content %}
+{% if user_item %}
+    <div class="card mb-4"><div class="card-body">
+        <h1 class="h3">{{ user_item.name }}</h1>
+        <p><strong>Возраст:</strong> {{ user_item.age }} лет</p>
+        <p><strong>Льготы:</strong>
+            {% if user_item.has_benefits %}есть, скидка 50%{% else %}нет{% endif %}</p>
+        <p><strong>Количество поездок:</strong> {{ trips|length }}</p>
+        <p><strong>Потрачено на активные поездки:</strong>
+            {{ spent.total|default:0|floatformat:2 }} ₽</p>
+    </div></div>
+
+    <h2 class="h5">Поездки пассажира</h2>
+    <div class="list-group">
+        {% for trip in trips %}
+            <a class="list-group-item list-group-item-action d-flex justify-content-between"
+               href="{% url 'trips:detail' trip.id %}">
+                <span>Поездка №{{ trip.id }} · маршрут {{ trip.number }} · {{ trip.trip_date }}</span>
+                {% include "trips_app/includes/trip_status.html" %}
+            </a>
+        {% empty %}
+            <div class="list-group-item text-secondary">Поездок пока нет.</div>
+        {% endfor %}
+    </div>
+{% else %}
+    <h1 class="text-danger">Пользователь не найден</h1>
+    <p>Пользователь с указанным идентификатором отсутствует.</p>
+{% endif %}
+
+<a href="{% url 'users:list' %}" class="btn btn-outline-secondary mt-3">← к списку пользователей</a>
+{% endblock %}

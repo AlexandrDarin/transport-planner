@@ -1,1 +1,22 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-3">О проекте</h1><div class="card"><div class="card-body"><p>Сервис планирования поездок на общественном транспорте. Проект объединяет маршруты, остановки, пассажиров и поездки.</p><h2 class="h5">Технологии</h2><ul><li>Python и Django</li><li>SQLite и параметризованные SQL-запросы</li><li>HTML-шаблоны Django с наследованием и include</li><li>CSS и JavaScript в статических файлах</li><li>Исходные JSON-данные сохранены для консольной версии</li></ul></div></div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}О проекте – Сервис планирования поездок{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">О проекте</h1>
+<div class="card">
+    <div class="card-body">
+        <p>
+            Сервис планирования поездок на общественном транспорте.
+            Проект объединяет маршруты, остановки, пассажиров и поездки.
+        </p>
+        <h2 class="h5">Технологии</h2>
+        <ul>
+            <li>Python и Django (шаблоны DTL, именованные URL, static)</li>
+            <li>SQLite и параметризованные SQL-запросы (модуль sqlite3)</li>
+            <li>Bootstrap 5 и собственные CSS / JavaScript</li>
+            <li>JSON-данные сохранены для консольной версии</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,1 +1,18 @@
-<div class="col-md-6 col-xl-4"><article class="card h-100"><div class="card-body"><div class="d-flex justify-content-between gap-2"><h2 class="h5">Маршрут {{ route.number }}</h2><span class="badge text-bg-light">{{ route.transport_type }}</span></div><p class="text-secondary mb-1">Цена: {{ route.base_price|floatformat:2 }} ₽</p><p class="text-secondary">В пути: {{ route.travel_time_minutes }} мин.</p><a href="{% url 'routes:detail' route.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a></div></article></div>
+<div class="col-md-6 col-xl-4">
+    <article class="card route-card h-100">
+        <div class="card-body">
+            <div class="d-flex justify-content-between gap-2">
+                <h2 class="h5">Маршрут {{ route.number|default:"без номера" }}</h2>
+                <span class="badge text-bg-light">{{ route.transport_type }}</span>
+            </div>
+            <p class="text-secondary mb-1">
+                Цена: {{ route.base_price|floatformat:2 }} ₽
+            </p>
+            <p class="text-secondary">
+                В пути: {{ route.travel_time_minutes }} мин.
+            </p>
+            <a href="{% url 'routes:detail' route.id %}"
+               class="btn btn-sm btn-outline-primary">Подробнее</a>
+        </div>
+    </article>
+</div>
