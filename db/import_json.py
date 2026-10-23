@@ -1,54 +1,118 @@
-"""Импорт исходных JSON-данных ПР3 в SQLite (без удаления JSON)."""
+"""Однократный перенос данных из JSON-файлов в SQLite.
+
+Запуск из корня проекта:  python -m db.import_json
+JSON-файлы не удаляются: они нужны консольной версии (main.py).
+"""
+
 import json
-import sys
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
-if str(BASE_DIR) not in sys.path:
-    sys.path.insert(0, str(BASE_DIR))
-from db.database import get_connection
+
+from db.database import BASE_DIR, create_schema, get_connection
 
 DATA_DIR = BASE_DIR / "data"
+ROUTES_FILE = DATA_DIR / "routes.json"
+STOPS_FILE = DATA_DIR / "stops.json"
+USERS_FILE = DATA_DIR / "users.json"
+TRIPS_FILE = DATA_DIR / "trips.json"
 
 
-def read_json(filename, default):
-    with (DATA_DIR / filename).open(encoding="utf-8") as file:
-        return json.load(file) if file else default
+def load_json(filename):
+    """Прочитать JSON-файл."""
+    with open(filename, encoding="utf-8") as file:
+        return json.load(file)
 
 
-def import_data():
-    routes = read_json("routes.json", {})
-    stops = read_json("stops.json", [])
-    users = read_json("users.json", [])
-    trips = read_json("trips.json", [])
-    connection = get_connection()
+def import_routes(conn):
+    """routes.json хранится словарём {id: данные}."""
+    routes = load_json(ROUTES_FILE)
+    conn.executemany(
+        """
+        INSERT INTO routes (
+            id, number, transport_type, base_price, travel_time_minutes
+        )
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        [
+            (
+                int(route_id),
+                route["number"],
+                route["transport_type"],
+                route["base_price"],
+                route["travel_time_minutes"],
+            )
+            for route_id, route in routes.items()
+        ],
+    )
+
+
+def import_stops(conn):
+    """Остановки."""
+    stops = load_json(STOPS_FILE)
+    conn.executemany(
+        "INSERT INTO stops (id, name, city) VALUES (?, ?, ?)",
+        [(s["id"], s["name"], s["city"]) for s in stops],
+    )
+
+
+def import_users(conn):
+    """Пользователи; логическое значение приводится к 0/1."""
+    users = load_json(USERS_FILE)
+    conn.executemany(
+        """
+        INSERT INTO users (id, name, age, has_benefits)
+        VALUES (?, ?, ?, ?)
+        """,
+        [
+            (u["id"], u["name"], u["age"], int(u["has_benefits"]))
+            for u in users
+        ],
+    )
+
+
+def import_trips(conn):
+    """Поездки импортируются последними: они ссылаются на остальные."""
+    trips = load_json(TRIPS_FILE)
+    conn.executemany(
+        """
+        INSERT INTO trips (
+            id, route_id, user_id, stop_from_id, stop_to_id,
+            trip_date, is_cancelled
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (
+                t["id"],
+                t["route_id"],
+                t["user_id"],
+                t["stop_from_id"],
+                t["stop_to_id"],
+                t["date"],
+                int(t.get("is_cancelled", False)),
+            )
+            for t in trips
+        ],
+    )
+
+
+def main():
+    """Создать таблицы, очистить их и перенести данные одной транзакцией."""
+    conn = get_connection()
     try:
-        schema = (BASE_DIR / "sql" / "schema.sql").read_text(encoding="utf-8")
-        connection.executescript(schema)
-        connection.execute("DELETE FROM trips")
-        connection.execute("DELETE FROM routes")
-        connection.execute("DELETE FROM stops")
-        connection.execute("DELETE FROM users")
-        connection.executemany(
-            "INSERT INTO routes (id, number, transport_type, base_price, travel_time_minutes) VALUES (?, ?, ?, ?, ?)",
-            [(int(key), item["number"], item["transport_type"], item["base_price"], item["travel_time_minutes"]) for key, item in routes.items()],
-        )
-        connection.executemany(
-            "INSERT INTO stops (id, name, city) VALUES (?, ?, ?)",
-            [(item["id"], item["name"], item["city"]) for item in stops],
-        )
-        connection.executemany(
-            "INSERT INTO users (id, name, age, has_benefits) VALUES (?, ?, ?, ?)",
-            [(item["id"], item["name"], item["age"], int(item["has_benefits"])) for item in users],
-        )
-        connection.executemany(
-            "INSERT INTO trips (id, route_id, user_id, stop_from_id, stop_to_id, trip_date, is_cancelled) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [(item["id"], item["route_id"], item["user_id"], item["stop_from_id"], item["stop_to_id"], item["date"], int(item.get("is_cancelled", False))) for item in trips],
-        )
-        connection.commit()
+        create_schema(conn)
+        for table in ("trips", "routes", "stops", "users"):
+            conn.execute(f"DELETE FROM {table}")  # имена таблиц — константы
+        import_routes(conn)
+        import_stops(conn)
+        import_users(conn)
+        import_trips(conn)
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
-        connection.close()
+        conn.close()
+    print("JSON-данные импортированы в SQLite.")
 
 
 if __name__ == "__main__":
-    import_data()
-    print("JSON-данные импортированы в SQLite.")
+    main()

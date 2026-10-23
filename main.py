@@ -7,7 +7,7 @@
 from typing import List
 
 # Совместимость с тестами ПР1/ПР2
-from models.routes import (
+from models.routes import (  # noqa: F401
     is_route_available,
     calculate_travel_time,
     calculate_price,
@@ -17,20 +17,20 @@ from models.routes import (
     sort_routes,
     route_statistics,
 )
-from models.trips import (
+from models.trips import (  # noqa: F401
     is_route_free,
     create_trip,
     cancel_trip,
     find_trips_by_user,
     get_trip_summary,
 )
-from models.users import (
+from models.users import (  # noqa: F401
     add_user,
     find_user_by_id,
     find_users_by_name,
     user_statistics,
 )
-from models.stops import (
+from models.stops import (  # noqa: F401
     add_stop,
     find_stop_by_id,
     find_stops_by_name,
