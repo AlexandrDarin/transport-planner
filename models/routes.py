@@ -1,7 +1,7 @@
 """Класс Route и функции работы с коллекцией маршрутов."""
 
 from __future__ import annotations
-from typing import List
+from typing import List, Optional
 
 
 class Route:
@@ -72,6 +72,15 @@ def find_routes(routes: List[Route], query: str) -> List[Route]:
     q = query.lower()
     return [r for r in routes
             if q in r.number.lower() or q in r.transport_type.lower()]
+
+
+def find_route_by_id(routes: List[Route],
+                     route_id: int) -> Optional[Route]:
+    """Найти маршрут по идентификатору."""
+    for r in routes:
+        if r.id == route_id:
+            return r
+    return None
 
 
 def filter_routes_by_price(routes: List[Route],

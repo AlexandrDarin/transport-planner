@@ -13,7 +13,7 @@ SECRET_KEY = (
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 
 INSTALLED_APPS = [
@@ -45,7 +45,7 @@ ROOT_URLCONF = 'transport_planner.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -102,6 +102,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

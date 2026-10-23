@@ -93,6 +93,15 @@ def is_route_free(trips: List[Trip], route: Route,
     return True
 
 
+def find_trip_by_id(trips: List[Trip],
+                    trip_id: int) -> Optional[Trip]:
+    """Найти поездку по идентификатору."""
+    for t in trips:
+        if t.id == trip_id:
+            return t
+    return None
+
+
 def create_trip(trips: List[Trip], route: Route, user: User,
                 stop_from: Stop, stop_to: Stop,
                 trip_date: date) -> Optional[Trip]:
