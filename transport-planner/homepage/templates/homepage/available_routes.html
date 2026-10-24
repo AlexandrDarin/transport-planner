@@ -1,0 +1,19 @@
+{% extends "homepage/base.html" %}
+{% block title %}Свободные маршруты{% endblock %}
+{% block content %}
+<h1>Поиск свободных маршрутов</h1>
+<p>Выберите дату: будут показаны маршруты без активной поездки на эту дату.</p>
+<form method="get" class="search-form">
+  <label for="date">Дата поездки</label>
+  <input id="date" name="date" type="date" value="{{ trip_date }}" required>
+  <button type="submit">Найти</button>
+</form>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if searched %}
+  <h2>Свободные маршруты на {{ trip_date }}</h2>
+  <div class="table-wrap"><table><thead><tr><th>№</th><th>Название</th><th>Вид транспорта</th></tr></thead><tbody>
+  {% for route in routes %}<tr><td>{{ route.route_number }}</td><td>{{ route.title }}</td><td>{{ route.transport_type|capfirst }}</td></tr>
+  {% empty %}<tr><td colspan="3">На выбранную дату свободных маршрутов нет.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% endif %}
+{% endblock %}

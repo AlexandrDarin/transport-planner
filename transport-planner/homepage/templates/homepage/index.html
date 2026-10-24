@@ -1,0 +1,15 @@
+{% extends "homepage/base.html" %}
+{% block title %}Главная — Transport Planner{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Городской транспорт</p>
+  <h1>Планируйте поездки проще</h1>
+  <p>Информация о маршрутах, остановках и поездках хранится в SQLite и отображается через Django.</p>
+  <a class="button" href="{% url 'homepage:available_routes' %}">Найти свободный маршрут</a>
+</section>
+<section class="cards">
+  <article class="card"><span>Маршрутов</span><strong>{{ routes_count }}</strong><a href="{% url 'homepage:routes' %}">Посмотреть →</a></article>
+  <article class="card"><span>Остановок</span><strong>{{ stops_count }}</strong><a href="{% url 'homepage:stops' %}">Посмотреть →</a></article>
+  <article class="card"><span>Активных поездок</span><strong>{{ active_trips_count }}</strong><a href="{% url 'homepage:trips' %}">Посмотреть →</a></article>
+</section>
+{% endblock %}

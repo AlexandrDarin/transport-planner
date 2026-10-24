@@ -1,0 +1,23 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Transport Planner{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script defer src="{% static 'js/main.js' %}"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="{% url 'homepage:index' %}">Transport Planner</a>
+      {% include "partials/nav.html" %}
+    </div>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="container footer">Учебный проект · SQLite и Django</footer>
+</body>
+</html>
