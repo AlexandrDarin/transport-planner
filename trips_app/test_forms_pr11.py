@@ -182,6 +182,23 @@ class TripFormsTests(TestCase):
         self.assertEqual(Trip.objects.count(), 2)
         self.assertEqual(old_trip.status, Trip.Status.CANCELLED)
 
+    def test_trip_detail_uses_404_for_missing_trip(self):
+        self.assertEqual(
+            self.client.get(reverse("trips:detail", args=[9999])).status_code,
+            404,
+        )
+
+        trip = Trip.objects.create(
+            route=self.route,
+            passenger=self.passenger,
+            origin_stop=self.origin,
+            destination_stop=self.destination,
+            trip_date=timezone.localdate() + timedelta(days=2),
+        )
+        response = self.client.get(reverse("trips:detail", args=[trip.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "ТЕСТ-11")
+
     def test_missing_or_cancelled_trip_cannot_be_edited(self):
         self.assertEqual(
             self.client.get(reverse("trips:update", args=[9999])).status_code,

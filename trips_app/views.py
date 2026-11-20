@@ -76,13 +76,9 @@ def trips_list(request):
 
 
 def trip_detail(request, trip_id):
-    trip = _with_price(Trip.objects.filter(pk=trip_id)).first()
-    return render(
-        request,
-        "trips_app/detail.html",
-        {"trip": trip},
-        status=404 if trip is None else 200,
-    )
+    """Показывает поездку или возвращает стандартный ответ 404."""
+    trip = get_object_or_404(_with_price(Trip.objects.all()), pk=trip_id)
+    return render(request, "trips_app/detail.html", {"trip": trip})
 
 
 def trip_create(request):
