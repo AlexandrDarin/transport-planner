@@ -8,7 +8,20 @@
         <h1>Поездки</h1>
         <p class="text-secondary mb-0">Информация о поездках и стоимости с учётом льгот.</p>
     </div>
+<<<<<<< HEAD
     <a class="btn btn-primary" href="{% url 'trips:create' %}">Создать поездку</a>
+=======
+    <div class="btn-group">
+        <a class="btn btn-outline-primary {% if status == 'all' %}active{% endif %}"
+           href="?status=all">Все</a>
+        <a class="btn btn-outline-primary {% if status == 'active' %}active{% endif %}"
+           href="?status=active">Активные</a>
+        <a class="btn btn-outline-primary {% if status == 'cancelled' %}active{% endif %}"
+           href="?status=cancelled">Отменённые</a>
+        <a class="btn btn-outline-primary {% if status == 'completed' %}active{% endif %}"
+           href="?status=completed">Завершённые</a>
+    </div>
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3
 </div>
 
 <div class="row g-3 mb-4">
@@ -24,6 +37,7 @@
         <div class="stat-value">{{ stats.cancelled|default:0 }}</div>
         <div class="stat-label">отменённых</div>
     </div></div>
+<<<<<<< HEAD
     <div class="col-6 col-lg-3"><div class="stat-card">
         <div class="stat-value">{{ stats.completed|default:0 }}</div>
         <div class="stat-label">завершённых</div>
@@ -59,6 +73,17 @@
     </div>
 </form>
 
+=======
+    <div class="col-4"><div class="stat-card"><div class="stat-value">{{ stats.completed|default:0 }}</div><div class="stat-label">завершённых</div></div></div>
+</div>
+<form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="status" value="{{ status }}">
+    <div class="col-md-5"><input class="form-control" name="q" value="{{ query }}" placeholder="Маршрут, пассажир или остановка"></div>
+    <div class="col-md-3"><input class="form-control" type="date" name="date" value="{{ selected_date }}"></div>
+    <div class="col-md-2"><select class="form-select" name="sort"><option value="date" {% if sort == 'date' %}selected{% endif %}>Сначала новые</option><option value="date_asc" {% if sort == 'date_asc' %}selected{% endif %}>Сначала старые</option><option value="route" {% if sort == 'route' %}selected{% endif %}>По маршруту</option><option value="passenger" {% if sort == 'passenger' %}selected{% endif %}>По пассажиру</option></select></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Применить</button></div>
+</form>
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3
 <div class="table-responsive card">
     <table class="table table-hover mb-0">
         <thead>
@@ -103,9 +128,15 @@
 </div>
 {% if page_obj %}
 <nav class="mt-3" aria-label="Пагинация"><ul class="pagination">
+<<<<<<< HEAD
 {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&date={{ selected_date }}&status={{ status }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">Назад</a></li>{% endif %}
 <li class="page-item disabled"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
 {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&date={{ selected_date }}&status={{ status }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">Вперёд</a></li>{% endif %}
+=======
+{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?status={{ status }}&q={{ query|urlencode }}&date={{ selected_date }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">Назад</a></li>{% endif %}
+<li class="page-item disabled"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?status={{ status }}&q={{ query|urlencode }}&date={{ selected_date }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">Вперёд</a></li>{% endif %}
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3
 </ul></nav>
 {% endif %}
 {% endblock %}

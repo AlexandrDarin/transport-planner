@@ -1,9 +1,13 @@
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Max, Min, Q
 from datetime import date
+<<<<<<< HEAD
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from .forms import RouteForm
+=======
+from django.shortcuts import render
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3
 from .models import Route
 from trips_app.models import Trip
 
@@ -52,6 +56,7 @@ def route_detail_by_slug(request, slug):
     route = Route.objects.annotate(trip_count=Count('trips')).filter(slug=slug).first()
     trips = route.trips.select_related('passenger', 'origin_stop', 'destination_stop').order_by('trip_date', 'pk') if route else []
     return render(request, 'routes_app/detail.html', {'route': route, 'trips': trips}, status=404 if route is None else 200)
+<<<<<<< HEAD
 
 
 def route_create(request):
@@ -85,3 +90,5 @@ def route_update(request, route_id):
         "form": form,
         "route": route,
     })
+=======
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3

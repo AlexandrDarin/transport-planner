@@ -3,4 +3,7 @@ pytest>=8.0
 pytest-django>=4.8
 flake8>=7.0
 django-debug-toolbar>=5.0,<7.0
+<<<<<<< HEAD
 Pillow>=10.0\n
+=======
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3

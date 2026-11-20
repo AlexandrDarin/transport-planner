@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if route %}Редактирование маршрута {{ route.number }}{% else %}Создание маршрута{% endif %}
+    – Сервис планирования поездок
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card">
+            <div class="card-body p-4">
+                {% if route %}
+                    <h1 class="h3">Редактирование маршрута {{ route.number }}</h1>
+                {% else %}
+                    <h1 class="h3">Создание маршрута</h1>
+                {% endif %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    {% if route.image %}
+                        <div class="mb-3">
+                            <p class="form-label">Текущее изображение</p>
+                            <img src="{{ route.image.url }}" alt="Маршрут {{ route.number }}" class="img-fluid rounded" style="max-height: 220px;">
+                        </div>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" type="submit">
+                            {% if route %}Сохранить изменения{% else %}Создать маршрут{% endif %}
+                        </button>
+                        {% if route %}
+                            <a class="btn btn-outline-secondary" href="{% url 'routes:detail' route.pk %}">Отмена</a>
+                        {% else %}
+                            <a class="btn btn-outline-secondary" href="{% url 'routes:list' %}">Отмена</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

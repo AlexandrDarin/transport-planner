@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if trip %}Поездка №{{ trip.id }}{% else %}Поездка не найдена{% endif %}
+    – Сервис планирования поездок
+{% endblock %}
+
+{% block content %}
+{% if trip %}
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <h1 class="h3">Поездка №{{ trip.id }}</h1>
+                <span class="align-self-start">{% include "trips_app/includes/trip_status.html" %}</span>
+            </div>
+            <hr>
+            <p><strong>Маршрут:</strong>
+                <a href="{% url 'routes:detail' trip.route_id %}">{{ trip.route_number }}</a>
+                ({{ trip.transport_type }})</p>
+            <p><strong>Пассажир:</strong>
+                <a href="{% url 'users:detail' trip.user_id %}">{{ trip.passenger }}</a></p>
+            <p><strong>Льготы:</strong>
+                {% if trip.has_benefits %}есть (скидка 50%){% else %}нет{% endif %}</p>
+            <p><strong>Откуда:</strong>
+                <a href="{% url 'stops:detail' trip.stop_from_id %}">{{ trip.origin }}</a></p>
+            <p><strong>Куда:</strong>
+                <a href="{% url 'stops:detail' trip.stop_to_id %}">{{ trip.destination }}</a></p>
+            <p><strong>Дата:</strong> {{ trip.trip_date }}</p>
+            <p class="fs-5"><strong>Стоимость:</strong> {{ trip.price|floatformat:2 }} ₽</p>
+            {% if trip.status == 'active' %}
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a class="btn btn-primary" href="{% url 'trips:update' trip.pk %}">Редактировать поездку</a>
+                    <form method="post" action="{% url 'trips:cancel' trip.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger" type="submit">Отменить поездку</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <h1 class="text-danger">Поездка не найдена</h1>
+    <p>Поездка с указанным идентификатором отсутствует.</p>
+{% endif %}
+
+<a href="{% url 'trips:list' %}" class="btn btn-outline-secondary mt-3">← к списку поездок</a>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% load static %}
+{% with view=request.resolver_match.view_name ns=request.resolver_match.namespace %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'homepage:index' %}">
+            <img
+                src="{% static 'homepage/img/logo.png' %}"
+                alt="Transport Planner"
+                class="transport-logo"
+            >
+        </a>
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNav"
+            aria-label="Открыть меню"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link {% if view == 'homepage:index' %}active{% endif %}"
+                   href="{% url 'homepage:index' %}">Главная</a>
+                <a class="nav-link {% if ns == 'routes' %}active{% endif %}"
+                   href="{% url 'routes:list' %}">Маршруты</a>
+                <a class="nav-link {% if ns == 'stops' %}active{% endif %}"
+                   href="{% url 'stops:list' %}">Остановки</a>
+                <a class="nav-link {% if ns == 'trips' %}active{% endif %}"
+                   href="{% url 'trips:list' %}">Поездки</a>
+                <a class="nav-link {% if ns == 'users' %}active{% endif %}"
+                   href="{% url 'users:list' %}">Пользователи</a>
+                <a class="nav-link {% if view == 'homepage:statistics' %}active{% endif %}"
+                   href="{% url 'homepage:statistics' %}">Статистика</a>
+                <a class="nav-link {% if view == 'homepage:about' %}active{% endif %}"
+                   href="{% url 'homepage:about' %}">О проекте</a>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endwith %}

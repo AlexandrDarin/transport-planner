@@ -95,6 +95,7 @@ transport-planner/
 ├── pytest.ini
 └── requirements.txt
 ```
+<<<<<<< HEAD
 
 
 ## ПР11 — Django Forms и загрузка изображений
@@ -156,3 +157,5 @@ pytest -v
 После установки зависимостей и миграций создайте суперпользователя при
 необходимости (`python manage.py createsuperuser`) и проверьте сценарии из
 `REPORT_PR11.md`.
+=======
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3

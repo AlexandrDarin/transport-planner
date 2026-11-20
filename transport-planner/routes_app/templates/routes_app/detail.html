@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if route %}Маршрут {{ route.number }}{% else %}Маршрут не найден{% endif %}
+    – Сервис планирования поездок
+{% endblock %}
+
+{% block content %}
+{% if route %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h1 class="h3">Маршрут {{ route.number }}</h1>
+                <a class="btn btn-outline-primary" href="{% url 'routes:update' route.pk %}">Редактировать маршрут</a>
+            </div>
+            {% if route.image %}
+                <img src="{{ route.image.url }}" alt="Маршрут {{ route.number }}" class="img-fluid rounded mb-3" style="max-height: 360px; width: 100%; object-fit: cover;">
+            {% else %}
+                <p class="text-secondary">Изображение маршрута не загружено.</p>
+            {% endif %}
+            <p><strong>ID:</strong> {{ route.id }}</p>
+            <p><strong>Вид транспорта:</strong> {{ route.transport_type }}</p>
+            <p><strong>Стоимость:</strong> {{ route.base_price|floatformat:2 }} ₽</p>
+            <p><strong>Время в пути:</strong> {{ route.travel_time_minutes }} мин.</p>
+            <p><strong>Поездок:</strong> {{ trips|length }}</p>
+        </div>
+    </div>
+
+    <h2 class="h5">Поездки по маршруту</h2>
+    <div class="list-group">
+        {% for trip in trips %}
+            <a class="list-group-item list-group-item-action d-flex justify-content-between"
+               href="{% url 'trips:detail' trip.id %}">
+                <span>Поездка №{{ trip.id }} · {{ trip.trip_date }} · {{ trip.passenger }}</span>
+                {% include "trips_app/includes/trip_status.html" %}
+            </a>
+        {% empty %}
+            <div class="list-group-item text-secondary">Поездок пока нет.</div>
+        {% endfor %}
+    </div>
+{% else %}
+    <h1 class="text-danger">Маршрут не найден</h1>
+    <p>Маршрут с указанным идентификатором отсутствует.</p>
+{% endif %}
+
+<a href="{% url 'routes:list' %}" class="btn btn-outline-secondary mt-3">← к списку маршрутов</a>
+{% endblock %}
