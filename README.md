@@ -1,131 +1,97 @@
 # Transport Planner — сервис планирования поездок
 
-Учебный индивидуальный проект (ПР1–ПР7): консольное приложение на Python
-с веб-интерфейсом на Django, шаблонами DTL и реляционным хранилищем SQLite.
+Индивидуальный учебный проект. В ПР9 веб-слой переведён с прямых SQL-запросов на Django ORM, в ПР10 добавлены административная панель, статусы поездок, менеджер QuerySet и улучшенная работа со связанными объектами.
 
-## 1. Назначение
+## Возможности
 
-Сервис хранит маршруты общественного транспорта, остановки, пассажиров
-и их поездки, считает стоимость с учётом льгот (скидка 50 %) и показывает
-информацию через веб-интерфейс Django. Консольная версия (`main.py`)
-сохранена и работает с JSON-файлами.
+- маршруты: поиск по номеру и виду транспорта, фильтр по стоимости, сортировка, карточка маршрута по ID и slug;
+- остановки: поиск по названию и городу, просмотр отправлений и прибытий;
+- пассажиры: поиск, льготы, история поездок и сумма затрат;
+- поездки: фильтрация по статусу и дате, поиск по маршруту/пассажиру/остановкам, сортировка и пагинация;
+- доступность маршрутов на выбранную дату учитывает только активные поездки;
+- статистика: агрегаты, аннотации, группировка по видам транспорта и городам, популярность маршрутов и расходы пассажиров;
+- Django Admin: управление маршрутами, остановками, пассажирами и поездками; поиск, фильтры, сортировка, inline-просмотр связанных поездок.
 
-## 2. Технологии
+## Технологии
 
-Python 3, Django 5.2, Django Template Language, HTML5, CSS3, JavaScript,
-Bootstrap 5, SQLite (модуль `sqlite3`), JSON, pytest, flake8, Git.
+Python 3.11–3.13, Django 5.2, Django ORM, SQLite, Django Admin, Django Templates, Django Debug Toolbar (для локального анализа SQL), pytest, pytest-django.
 
-## 3. Запуск
+## Установка и запуск (Windows PowerShell)
 
-```bash
-python -m venv .venv
-.venv\Scripts\activate            # Windows PowerShell
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python -m db.import_json          # (пере)создать таблицы и загрузить JSON
+python manage.py migrate
+python manage.py import_legacy_data
 python manage.py check
 python manage.py runserver
 ```
 
-Сайт: http://127.0.0.1:8000/
+Откройте http://127.0.0.1:8000/. Админ-панель доступна по адресу http://127.0.0.1:8000/admin/. При установленном Django Debug Toolbar панель SQL доступна на страницах разработки.
 
-Пересоздать базу с нуля (PowerShell):
+Создать администратора:
 
 ```powershell
-Remove-Item .\data\transport_planner.sqlite3
-python -m db.import_json
+python manage.py createsuperuser
 ```
 
-## 4. Страницы
+### Перенос исходных данных ПР7
 
-| URL | Что показывает | Источник данных |
-|---|---|---|
-| `/` | главная, количество записей | SQLite (COUNT) |
-| `/routes/` | список, поиск `?q=`, фильтр цены `?max_price=` | SQLite (WHERE, LIKE) |
-| `/routes/<id>/` | маршрут и его поездки, 404 если нет | SQLite (JOIN) |
-| `/routes/available/?date=` | свободные маршруты на дату | SQLite (подзапрос NOT IN) |
-| `/stops/`, `/stops/<id>/` | остановки, поиск, связанные поездки | SQLite |
-| `/trips/`, `/trips/<id>/` | поездки, фильтр `?status=active|cancelled` | SQLite (JOIN 5 таблиц) |
-| `/users/`, `/users/<id>/` | пассажиры, поиск, траты | SQLite |
-| `/statistics/` | агрегаты, GROUP BY, HAVING `?min_trips=`, LIMIT | SQLite |
-| `/about/` | о проекте | — |
+Исходная база SQLite сохранена в `data/transport_planner.sqlite3`. Команда `import_legacy_data` переносит записи в основную Django-БД `db.sqlite3`, сохраняет первичные ключи и преобразует прежний флаг `is_cancelled` в статусы `active` / `cancelled`.
 
-## 5. ПР6 — шаблоны Django
+Для повторного импорта с очисткой ORM-таблиц:
 
-- `templates/base.html` — общий каркас (`{% block title %}`,
-  `{% block content %}`), подключён через `DIRS` в `settings.py`;
-- `templates/includes/navigation.html` — навигация через `{% include %}`
-  и `{% url %}`, активный пункт определяется по `request.resolver_match`;
-- дочерние шаблоны используют `{% extends "base.html" %}`;
-- включаемые фрагменты: `routes_app/includes/route_card.html`,
-  `trips_app/includes/trip_status.html`;
-- данные передаются через `context` в `render()`; циклы
-  `{% for %}…{% empty %}`, условия `{% if %}`;
-- именованные URL и пространства имён (`app_name`): `homepage`, `routes`,
-  `stops`, `trips`, `users` (`{% url 'routes:detail' route.id %}`);
-- фильтры: `length`, `default`, `floatformat`;
-- статика `homepage/static/homepage/`: `css/style.css`, `js/main.js`
-  (текущий год в подвале), `img/logo.png`;
-- HTML в Python не формируется, функция `page()` удалена;
-- 404 для несуществующих объектов: страница из шаблона со статусом 404.
-
-## 6. ПР7 — слой базы данных
-
-База: `data/transport_planner.sqlite3` (в репозитории).
-
-| Таблица | Поля |
-|---|---|
-| `routes` | `id` INTEGER PK, `number` TEXT, `transport_type` TEXT, `base_price` REAL, `travel_time_minutes` INTEGER |
-| `stops` | `id` INTEGER PK, `name` TEXT, `city` TEXT |
-| `users` | `id` INTEGER PK, `name` TEXT, `age` INTEGER, `has_benefits` INTEGER (0/1) |
-| `trips` | `id` INTEGER PK, `route_id` FK→routes, `user_id` FK→users, `stop_from_id` FK→stops, `stop_to_id` FK→stops, `trip_date` TEXT (YYYY-MM-DD), `is_cancelled` INTEGER (0/1) |
-
-Первичные ключи — поля `id`; внешние ключи — в таблице `trips`
-(четыре связи). Все поля обязательны (`NOT NULL`), добавлены `CHECK`
-и индексы.
-
-Файлы:
-
-- `sql/schema.sql` — создание таблиц (`CREATE TABLE IF NOT EXISTS`);
-- `sql/queries.sql` — 29 проверенных запросов с комментариями (выборка
-  списков, WHERE, JOIN, COUNT/SUM/AVG/MIN/MAX, GROUP BY, HAVING,
-  LIMIT/OFFSET, подзапрос);
-- `db/database.py` — `get_connection()`: `PRAGMA foreign_keys = ON`,
-  `row_factory = sqlite3.Row` (поля по имени: `{{ route.number }}`);
-- `db/import_json.py` — перенос данных из JSON (`executemany`, параметры
-  `?`, `commit`/`rollback`). Запуск: `python -m db.import_json`.
-
-Django-представления выполняют SQL-запросы напрямую через `sqlite3`,
-значения передаются **только параметрами `?`** (без f-строк).
-Django ORM пока не используется (следующие практические работы).
-JSON-хранилище (`storage.py`, `models/`, `main.py`) сохранено.
-
-## 7. Структура
-
-```
-templates/                 base.html, includes/navigation.html
-homepage/ routes_app/ stops_app/ trips_app/ users_app/
-    views.py urls.py templates/<app>/ (+ includes/)
-homepage/static/homepage/  css/ js/ img/
-db/                        database.py, import_json.py
-sql/                       schema.sql, queries.sql
-data/                      *.json, transport_planner.sqlite3
-models/ storage.py main.py utils.py   — ПР1–ПР3 (консольная версия)
-tests/                     pytest-тесты (модели, БД, веб)
+```powershell
+python manage.py import_legacy_data --replace
 ```
 
-## 8. Проверка
+Команда `db.import_json` и JSON-файлы оставлены для совместимости с консольной версией проекта из предыдущих практик; Django-сайт использует только ORM и основную БД `db.sqlite3`.
 
-```bash
+## Модели и связи (ПР9)
+
+- `Route` — маршрут (номер, тип транспорта, стоимость, длительность, slug);
+- `Stop` — остановка (название, город);
+- `Passenger` — пассажир (имя, возраст, признак льготы);
+- `Trip` — поездка с внешними ключами на маршрут, пассажира, остановку отправления и остановку прибытия.
+
+Связи описаны через `ForeignKey`, `related_name` и `on_delete=PROTECT`, чтобы нельзя было удалить справочник, пока на него ссылаются поездки. Структура БД создаётся и изменяется миграциями Django.
+
+## ORM и бизнес-правила (ПР9)
+
+Представления используют `filter()`, `exclude()`, `Q`, `order_by()`, `values()`, `annotate()`, `aggregate()`, `Count`, `Sum`, `Avg`, `Min`, `Max`, `select_related()` и `Paginator`. Для сортировки применяется белый список полей. Невалидные параметры поиска/даты/сортировки обрабатываются безопасно, отсутствующие объекты возвращают 404.
+
+В статистике учитываются активные поездки; отменённые и завершённые не блокируют маршрут и не увеличивают выручку. Для доступности маршрута используется `Trip.objects.active().for_date(date)`.
+
+## Django Admin и статусы (ПР10)
+
+Все доменные модели зарегистрированы в админке. Настроены русские подписи, `list_display`, `search_fields`, `list_filter`, `ordering`, `list_per_page`, `list_select_related`, inline-просмотр связанных поездок и быстрый выбор внешних ключей. Статусы поездки заданы через `TextChoices`: `ACTIVE`, `CANCELLED`, `COMPLETED`. Менеджер `Trip.objects` предоставляет методы `active()`, `cancelled()`, `completed()` и `for_date()`.
+
+## Проверка
+
+```powershell
 python manage.py check
+python manage.py makemigrations --check --dry-run
 pytest -v
-flake8 . --extend-exclude=venv,.venv
 ```
 
-## 9. Git
+Тесты включают проверки прежних функций консольной версии, исходной схемы ПР7, ORM-связей, статусов, запросов и веб-страниц.
 
-Коммиты этапов начинаются с префиксов `PR6:` и `PR7:`.
+## Структура
 
-## 10. Дальнейшее развитие
-
-Подключение базы данных к Django через модели и ORM, формы Django,
-операции создания/изменения/удаления.
+```text
+transport-planner/
+├── transport_planner/       # настройки и корневые URL
+├── routes_app/              # модель Route, ORM-представления, админка, миграции
+├── stops_app/               # модель Stop, ORM-представления, админка, миграции
+├── users_app/               # модель Passenger, ORM-представления, админка, миграции
+├── trips_app/               # модель Trip, статусы, менеджер, импорт, админка, миграции
+├── homepage/                # главная страница, ORM-статистика, контекстный процессор
+├── templates/               # общие шаблоны
+├── data/                    # исходные данные ПР7 и БД для переноса
+├── db/                      # совместимость с консольной частью ПР1–ПР7
+├── tests/                   # автоматизированные тесты
+├── manage.py
+├── pytest.ini
+└── requirements.txt
+```

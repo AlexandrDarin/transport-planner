@@ -1,1 +1,20 @@
-[{"id": 1, "title": "Маршрут №1", "route_number": "1", "transport_type": "автобус"}, {"id": 2, "title": "Маршрут №10", "route_number": "10", "transport_type": "троллейбус"}]
+{
+  "1": {
+    "number": "А-42",
+    "transport_type": "Автобус",
+    "base_price": 50.0,
+    "travel_time_minutes": 35
+  },
+  "2": {
+    "number": "Т-3",
+    "transport_type": "Трамвай",
+    "base_price": 40.0,
+    "travel_time_minutes": 25
+  },
+  "3": {
+    "number": "М-7",
+    "transport_type": "Метро",
+    "base_price": 60.0,
+    "travel_time_minutes": 15
+  }
+}

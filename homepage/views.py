@@ -1,130 +1,31 @@
-"""Главная, «О проекте» и страница статистики (SQL: COUNT, GROUP BY)."""
-
+from django.db.models import Count, Sum, Avg, F, Q, Case, When, Value, FloatField, ExpressionWrapper
+from django.db.models.functions import Coalesce
 from django.shortcuts import render
-
-from db.database import get_connection
-
-COUNTS_SQL = """
-    SELECT
-        (SELECT COUNT(*) FROM routes) AS routes,
-        (SELECT COUNT(*) FROM stops) AS stops,
-        (SELECT COUNT(*) FROM trips) AS trips,
-        (SELECT COUNT(*) FROM users) AS users;
-"""
-
-SUMMARY_SQL = """
-    SELECT
-        COUNT(*) AS total_trips,
-        SUM(CASE WHEN is_cancelled = 0 THEN 1 ELSE 0 END) AS active_trips,
-        SUM(CASE WHEN is_cancelled = 1 THEN 1 ELSE 0 END) AS cancelled_trips
-    FROM trips;
-"""
-
-REVENUE_SQL = """
-    SELECT SUM(r.base_price * CASE WHEN u.has_benefits = 1
-                                   THEN 0.5 ELSE 1 END) AS total
-    FROM trips t
-    JOIN routes r ON r.id = t.route_id
-    JOIN users u ON u.id = t.user_id
-    WHERE t.is_cancelled = 0;
-"""
-
-ROUTE_STATS_SQL = """
-    SELECT r.id, r.number, COUNT(t.id) AS trip_count
-    FROM routes r
-    LEFT JOIN trips t
-           ON t.route_id = r.id AND t.is_cancelled = 0
-    GROUP BY r.id, r.number
-    ORDER BY trip_count DESC, r.number;
-"""
-
-POPULAR_ROUTES_SQL = """
-    SELECT r.id, r.number, COUNT(t.id) AS trip_count
-    FROM routes r
-    JOIN trips t ON t.route_id = r.id
-    WHERE t.is_cancelled = 0
-    GROUP BY r.id, r.number
-    HAVING COUNT(t.id) >= ?
-    ORDER BY trip_count DESC, r.number;
-"""
-
-TYPE_STATS_SQL = """
-    SELECT transport_type,
-           COUNT(*) AS routes_count,
-           AVG(base_price) AS avg_price
-    FROM routes
-    GROUP BY transport_type
-    ORDER BY routes_count DESC, transport_type;
-"""
-
-USER_STATS_SQL = """
-    SELECT u.id, u.name,
-           COUNT(t.id) AS trips_count,
-           COALESCE(SUM(r.base_price * CASE WHEN u.has_benefits = 1
-                                            THEN 0.5 ELSE 1 END), 0)
-               AS total_spent
-    FROM users u
-    LEFT JOIN trips t ON t.user_id = u.id AND t.is_cancelled = 0
-    LEFT JOIN routes r ON r.id = t.route_id
-    GROUP BY u.id, u.name
-    ORDER BY total_spent DESC, u.name;
-"""
-
-CITY_STATS_SQL = """
-    SELECT city, COUNT(*) AS stops_count
-    FROM stops
-    GROUP BY city
-    ORDER BY stops_count DESC, city;
-"""
-
-TOP_STOPS_SQL = """
-    SELECT s.id, s.name, COUNT(t.id) AS departures
-    FROM stops s
-    LEFT JOIN trips t
-           ON t.stop_from_id = s.id AND t.is_cancelled = 0
-    GROUP BY s.id, s.name
-    ORDER BY departures DESC, s.name
-    LIMIT 3 OFFSET 0;
-"""
+from routes_app.models import Route
+from stops_app.models import Stop
+from users_app.models import Passenger
+from trips_app.models import Trip
 
 
 def index(request):
-    """Главная страница: количество записей в таблицах."""
-    conn = get_connection()
-    try:
-        stats = conn.execute(COUNTS_SQL).fetchone()
-    finally:
-        conn.close()
-    return render(request, "homepage/index.html", {"stats": stats})
+    return render(request, 'homepage/index.html', {'stats': {'routes': Route.objects.count(), 'stops': Stop.objects.count(), 'trips': Trip.objects.count(), 'users': Passenger.objects.count()}})
 
 
 def about(request):
-    """Страница «О проекте»."""
-    return render(request, "homepage/about.html")
+    return render(request, 'homepage/about.html')
 
 
 def statistics(request):
-    """Статистика: агрегатные функции, GROUP BY, HAVING, LIMIT."""
     try:
-        min_trips = max(0, int(request.GET.get("min_trips", "1")))
-    except ValueError:
+        min_trips = max(0, min(100000, int(request.GET.get('min_trips', '1'))))
+    except (TypeError, ValueError):
         min_trips = 1
-
-    conn = get_connection()
-    try:
-        context = {
-            "min_trips": min_trips,
-            "summary": conn.execute(SUMMARY_SQL).fetchone(),
-            "revenue": conn.execute(REVENUE_SQL).fetchone(),
-            "route_stats": conn.execute(ROUTE_STATS_SQL).fetchall(),
-            "popular_routes": conn.execute(
-                POPULAR_ROUTES_SQL, [min_trips]
-            ).fetchall(),
-            "type_stats": conn.execute(TYPE_STATS_SQL).fetchall(),
-            "user_stats": conn.execute(USER_STATS_SQL).fetchall(),
-            "city_stats": conn.execute(CITY_STATS_SQL).fetchall(),
-            "top_stops": conn.execute(TOP_STOPS_SQL).fetchall(),
-        }
-    finally:
-        conn.close()
-    return render(request, "homepage/statistics.html", context)
+    summary = Trip.objects.aggregate(total_trips=Count('pk'), active_trips=Count('pk', filter=Q(status=Trip.Status.ACTIVE)), cancelled_trips=Count('pk', filter=Q(status=Trip.Status.CANCELLED)), completed_trips=Count('pk', filter=Q(status=Trip.Status.COMPLETED)))
+    revenue = Trip.objects.active().aggregate(total=Coalesce(Sum(ExpressionWrapper(F('route__base_price') * Case(When(passenger__has_benefits=True, then=Value(0.5)), default=Value(1.0)), output_field=FloatField())), Value(0.0)))
+    route_stats = Route.objects.annotate(trip_count=Count('trips', filter=Q(trips__status=Trip.Status.ACTIVE))).order_by('-trip_count', 'number')
+    popular_routes = route_stats.filter(trip_count__gte=min_trips)
+    type_stats = Route.objects.values('transport_type').annotate(routes_count=Count('pk'), avg_price=Avg('base_price')).order_by('-routes_count', 'transport_type')
+    user_stats = Passenger.objects.annotate(trips_count=Count('trips', filter=Q(trips__status=Trip.Status.ACTIVE)), total_spent=Coalesce(Sum(ExpressionWrapper(F('trips__route__base_price') * Case(When(has_benefits=True, then=Value(0.5)), default=Value(1.0)), output_field=FloatField()), filter=Q(trips__status=Trip.Status.ACTIVE)), Value(0.0))).order_by('-total_spent', 'name')
+    city_stats = Stop.objects.values('city').annotate(stops_count=Count('pk')).order_by('-stops_count', 'city')
+    top_stops = Stop.objects.annotate(departure_count=Count('departures', filter=Q(departures__status=Trip.Status.ACTIVE))).order_by('-departure_count', 'name')[:3]
+    return render(request, 'homepage/statistics.html', {'min_trips': min_trips, 'summary': summary, 'revenue': revenue, 'route_stats': route_stats, 'popular_routes': popular_routes, 'type_stats': type_stats, 'user_stats': user_stats, 'city_stats': city_stats, 'top_stops': top_stops})

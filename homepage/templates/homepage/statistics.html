@@ -115,7 +115,7 @@
                 {% for item in top_stops %}
                 <tr>
                     <td><a href="{% url 'stops:detail' item.id %}">{{ item.name }}</a></td>
-                    <td>{{ item.departures }}</td>
+                    <td>{{ item.departure_count }}</td>
                 </tr>
                 {% empty %}<tr><td colspan="2">Данных нет.</td></tr>{% endfor %}
             </tbody>
