@@ -95,3 +95,67 @@ transport-planner/
 ├── pytest.ini
 └── requirements.txt
 ```
+<<<<<<< HEAD
+
+
+## ПР11 — Django Forms и загрузка изображений
+
+В ПР11 формы адаптированы к предметной области Transport Planner: примеры
+Roomly (Room/Booking) заменены на существующие модели Route, Passenger,
+Stop и Trip. Дублирующие модели не создавались.
+
+### Формы поездок
+
+- `trips_app/forms.py`: `TripFilterForm(forms.Form)` проверяет GET-параметры
+  поиска, даты, статуса и сортировки; `TripForm(forms.ModelForm)` создаёт и
+  редактирует поездки по явно перечисленным полям.
+- Валидация запрещает прошедшую дату и совпадение остановок отправления и
+  прибытия. Сообщения ошибок полей и формы выводятся в шаблоне.
+- `trips_app/views.py`: создание и редактирование выполняются только после
+  `is_valid()`. Проверка доступности использует
+  `Trip.objects.active().filter(...).exists()`. При редактировании текущая
+  поездка исключается через `exclude(pk=trip.pk)`.
+- Отмена выполняется отдельным представлением с `@require_POST` и вызывает
+  `trip.cancel()`: запись остаётся в БД со статусом `cancelled`.
+- В шаблонах POST-форм используются `{% csrf_token %}`, а фильтрация,
+  сортировка и пагинация продолжают работать через GET-параметры.
+
+### Изображения маршрутов
+
+- В `routes_app/models.py` добавлено необязательное поле `Route.image`
+  (`ImageField`, `upload_to="routes/"`); миграция —
+  `routes_app/migrations/0003_route_image.py`.
+- `routes_app/forms.py` содержит `RouteForm` с явным списком разрешённых
+  полей и ограничением размера изображения 5 МБ. Проверка формата выполняется
+  `ImageField` на сервере через Pillow.
+- Формы создания и редактирования маршрута передают `request.FILES`.
+  HTML-форма содержит `enctype="multipart/form-data"`.
+- `MEDIA_ROOT` и `MEDIA_URL` настроены отдельно от `static`; в режиме DEBUG
+  медиафайлы раздаются через корневой URLconf.
+- Изображение отображается в карточке и на странице маршрута, поле доступно
+  для загрузки и замены в Django Admin.
+
+### Новые URL
+
+- `/trips/create/` — создание поездки;
+- `/trips/<id>/edit/` — редактирование активной поездки;
+- `/trips/<id>/cancel/` — отмена поездки (только POST);
+- `/routes/create/` — создание маршрута;
+- `/routes/<id>/edit/` — редактирование маршрута и изображения.
+
+### Проверка ПР11
+
+```powershell
+python -m pip install -r requirements.txt
+python manage.py migrate
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test
+pytest -v
+```
+
+После установки зависимостей и миграций создайте суперпользователя при
+необходимости (`python manage.py createsuperuser`) и проверьте сценарии из
+`REPORT_PR11.md`.
+=======
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3

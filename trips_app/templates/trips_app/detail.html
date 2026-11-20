@@ -27,6 +27,15 @@
                 <a href="{% url 'stops:detail' trip.stop_to_id %}">{{ trip.destination }}</a></p>
             <p><strong>Дата:</strong> {{ trip.trip_date }}</p>
             <p class="fs-5"><strong>Стоимость:</strong> {{ trip.price|floatformat:2 }} ₽</p>
+            {% if trip.status == 'active' %}
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a class="btn btn-primary" href="{% url 'trips:update' trip.pk %}">Редактировать поездку</a>
+                    <form method="post" action="{% url 'trips:cancel' trip.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger" type="submit">Отменить поездку</button>
+                    </form>
+                </div>
+            {% endif %}
         </div>
     </div>
 {% else %}

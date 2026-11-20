@@ -1,7 +1,13 @@
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Max, Min, Q
 from datetime import date
+<<<<<<< HEAD
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+from .forms import RouteForm
+=======
 from django.shortcuts import render
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3
 from .models import Route
 from trips_app.models import Trip
 
@@ -50,3 +56,39 @@ def route_detail_by_slug(request, slug):
     route = Route.objects.annotate(trip_count=Count('trips')).filter(slug=slug).first()
     trips = route.trips.select_related('passenger', 'origin_stop', 'destination_stop').order_by('trip_date', 'pk') if route else []
     return render(request, 'routes_app/detail.html', {'route': route, 'trips': trips}, status=404 if route is None else 200)
+<<<<<<< HEAD
+
+
+def route_create(request):
+    """Создаёт маршрут и сохраняет загруженное изображение как медиафайл."""
+    if request.method == "POST":
+        form = RouteForm(request.POST, request.FILES)
+        if form.is_valid():
+            route = form.save()
+            messages.success(request, "Маршрут успешно создан.")
+            return redirect("routes:detail", route_id=route.pk)
+    else:
+        form = RouteForm()
+    return render(request, "routes_app/route_form.html", {
+        "form": form,
+        "route": None,
+    })
+
+
+def route_update(request, route_id):
+    """Редактирует маршрут, включая замену его изображения."""
+    route = get_object_or_404(Route, pk=route_id)
+    if request.method == "POST":
+        form = RouteForm(request.POST, request.FILES, instance=route)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Изменения маршрута сохранены.")
+            return redirect("routes:detail", route_id=route.pk)
+    else:
+        form = RouteForm(instance=route)
+    return render(request, "routes_app/route_form.html", {
+        "form": form,
+        "route": route,
+    })
+=======
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3

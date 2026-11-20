@@ -15,9 +15,12 @@
         <h1 class="mb-1">Маршруты</h1>
         <p class="text-secondary mb-0">Поиск и информация о городских маршрутах.</p>
     </div>
-    <a class="btn btn-outline-primary" href="{% url 'routes:available' %}">
-        Найти свободный маршрут
-    </a>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" href="{% url 'routes:create' %}">Добавить маршрут</a>
+        <a class="btn btn-outline-primary" href="{% url 'routes:available' %}">
+            Найти свободный маршрут
+        </a>
+    </div>
 </div>
 
 <form method="get" class="row g-2 mb-4">

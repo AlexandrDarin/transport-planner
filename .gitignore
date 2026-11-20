@@ -10,3 +10,7 @@ venv/
 htmlcov/
 db.sqlite3
 *.log
+<<<<<<< HEAD
+media/\n
+=======
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3

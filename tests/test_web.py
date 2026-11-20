@@ -98,8 +98,8 @@ def test_trips_status_filter(client):
     url = reverse("trips:list")
     active = client.get(url, {"status": "active"}).content.decode()
     cancelled = client.get(url, {"status": "cancelled"}).content.decode()
-    assert "Активна" in active and "Отменена" not in active
-    assert "Отменена" in cancelled and "Активна" not in cancelled
+    assert "trip-status-active" in active and "trip-status-cancelled" not in active
+    assert "trip-status-cancelled" in cancelled and "trip-status-active" not in cancelled
 
 
 def test_trip_detail_shows_discount_price(client):
