@@ -9,9 +9,12 @@ class Route(models.Model):
     base_price = models.DecimalField('Базовая стоимость', max_digits=8, decimal_places=2)
     travel_time_minutes = models.PositiveIntegerField('Время в пути, мин')
     slug = models.SlugField('Адрес', max_length=100, unique=True, blank=True)
+<<<<<<< HEAD
     image = models.ImageField(
         'Изображение', upload_to='routes/', blank=True, null=True
     )
+=======
+>>>>>>> 5474caf0f7714bfeba7f8bb98d28facb67b46cf3
 
     class Meta:
         db_table = 'routes'
