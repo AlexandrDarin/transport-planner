@@ -44,8 +44,8 @@ def test_parameterized_availability_query():
         rows = connection.execute(
             "SELECT id FROM routes WHERE id NOT IN "
             "(SELECT route_id FROM trips WHERE trip_date = ? AND is_cancelled = 0)",
-            ("2026-10-25",),
+            ("2026-09-15",),
         ).fetchall()
-        assert [row[0] for row in rows] == [2]
+        assert [row[0] for row in rows] == [2, 3]
     finally:
         connection.close()

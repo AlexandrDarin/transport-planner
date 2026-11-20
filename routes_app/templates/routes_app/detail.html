@@ -9,7 +9,15 @@
 {% if route %}
     <div class="card mb-4">
         <div class="card-body">
-            <h1 class="h3">Маршрут {{ route.number }}</h1>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h1 class="h3">Маршрут {{ route.number }}</h1>
+                <a class="btn btn-outline-primary" href="{% url 'routes:update' route.pk %}">Редактировать маршрут</a>
+            </div>
+            {% if route.image %}
+                <img src="{{ route.image.url }}" alt="Маршрут {{ route.number }}" class="img-fluid rounded mb-3" style="max-height: 360px; width: 100%; object-fit: cover;">
+            {% else %}
+                <p class="text-secondary">Изображение маршрута не загружено.</p>
+            {% endif %}
             <p><strong>ID:</strong> {{ route.id }}</p>
             <p><strong>Вид транспорта:</strong> {{ route.transport_type }}</p>
             <p><strong>Стоимость:</strong> {{ route.base_price|floatformat:2 }} ₽</p>

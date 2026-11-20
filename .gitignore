@@ -6,4 +6,8 @@ venv/
 .idea/
 .vscode/
 .pytest_cache/
+.coverage
+htmlcov/
 db.sqlite3
+*.log
+media/\n

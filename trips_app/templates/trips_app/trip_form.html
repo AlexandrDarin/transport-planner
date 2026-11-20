@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if trip %}Редактирование поездки №{{ trip.pk }}{% else %}Создание поездки{% endif %}
+    – Сервис планирования поездок
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card">
+            <div class="card-body p-4">
+                {% if trip %}
+                    <h1 class="h3 mb-2">Редактирование поездки №{{ trip.pk }}</h1>
+                    <p class="text-secondary">Изменения будут сохранены в существующей записи.</p>
+                {% else %}
+                    <h1 class="h3 mb-2">Создание поездки</h1>
+                    <p class="text-secondary">Заполните данные новой поездки.</p>
+                {% endif %}
+
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-primary" type="submit">
+                            {% if trip %}Сохранить изменения{% else %}Создать поездку{% endif %}
+                        </button>
+                        {% if trip %}
+                            <a class="btn btn-outline-secondary" href="{% url 'trips:detail' trip.pk %}">Отмена</a>
+                        {% else %}
+                            <a class="btn btn-outline-secondary" href="{% url 'trips:list' %}">Отмена</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

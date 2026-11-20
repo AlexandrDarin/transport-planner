@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Маршруты – Сервис планирования поездок{% endblock %}
+{% block title %}Маршруты – Сервис планирования поездок{% if page_obj %}
+<nav class="mt-4" aria-label="Пагинация"><ul class="pagination">
+{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&max_price={{ max_price }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">Назад</a></li>{% endif %}
+<li class="page-item disabled"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&max_price={{ max_price }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">Вперёд</a></li>{% endif %}
+</ul></nav>
+{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
@@ -8,9 +15,12 @@
         <h1 class="mb-1">Маршруты</h1>
         <p class="text-secondary mb-0">Поиск и информация о городских маршрутах.</p>
     </div>
-    <a class="btn btn-outline-primary" href="{% url 'routes:available' %}">
-        Найти свободный маршрут
-    </a>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" href="{% url 'routes:create' %}">Добавить маршрут</a>
+        <a class="btn btn-outline-primary" href="{% url 'routes:available' %}">
+            Найти свободный маршрут
+        </a>
+    </div>
 </div>
 
 <form method="get" class="row g-2 mb-4">
@@ -22,6 +32,9 @@
         <input class="form-control" type="number" step="any" min="0"
                name="max_price" value="{{ max_price }}"
                placeholder="Цена не выше, ₽">
+    </div>
+    <div class="col-md-2">
+        <select class="form-select" name="sort"><option value="number" {% if sort == 'number' %}selected{% endif %}>По номеру</option><option value="-number" {% if sort == '-number' %}selected{% endif %}>По номеру ↓</option><option value="price" {% if sort == 'price' %}selected{% endif %}>Сначала дешевле</option><option value="-price" {% if sort == '-price' %}selected{% endif %}>Сначала дороже</option><option value="duration" {% if sort == 'duration' %}selected{% endif %}>По времени</option></select>
     </div>
     <div class="col-auto">
         <button class="btn btn-primary" type="submit">Найти</button>
@@ -53,4 +66,11 @@
         <div class="col-12"><div class="alert alert-info">Маршруты не найдены.</div></div>
     {% endfor %}
 </div>
+{% if page_obj %}
+<nav class="mt-4" aria-label="Пагинация"><ul class="pagination">
+{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&max_price={{ max_price }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">Назад</a></li>{% endif %}
+<li class="page-item disabled"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&max_price={{ max_price }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">Вперёд</a></li>{% endif %}
+</ul></nav>
+{% endif %}
 {% endblock %}

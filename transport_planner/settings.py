@@ -13,6 +13,15 @@ SECRET_KEY = (
 
 DEBUG = True
 
+INTERNAL_IPS = ['127.0.0.1']
+
+try:
+    import debug_toolbar  # noqa: F401
+except ImportError:
+    DEBUG_TOOLBAR_AVAILABLE = False
+else:
+    DEBUG_TOOLBAR_AVAILABLE = True
+
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 
@@ -28,7 +37,7 @@ INSTALLED_APPS = [
     'trips_app',
     'users_app',
     'stops_app',
-]
+] + (['debug_toolbar'] if DEBUG_TOOLBAR_AVAILABLE else [])
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -38,7 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+] + (['debug_toolbar.middleware.DebugToolbarMiddleware'] if DEBUG_TOOLBAR_AVAILABLE else [])
 
 ROOT_URLCONF = 'transport_planner.urls'
 
@@ -52,6 +61,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'homepage.context_processors.site_context',
             ],
         },
     },
@@ -103,5 +113,9 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
+
+# Пользовательские изображения хранятся отдельно от статических ресурсов.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

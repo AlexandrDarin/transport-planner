@@ -12,14 +12,16 @@ from django.template.loader import get_template  # noqa: E402
 from django.test import Client  # noqa: E402
 from django.urls import reverse  # noqa: E402
 
-from db import database, import_json  # noqa: E402
+from django.core.management import call_command  # noqa: E402
 from homepage import views as homepage_views  # noqa: E402
 
 
+pytestmark = pytest.mark.django_db
+
+
 @pytest.fixture
-def client(tmp_path, monkeypatch):
-    monkeypatch.setattr(database, "DB_PATH", tmp_path / "web.sqlite3")
-    import_json.main()
+def client(db):
+    call_command("import_legacy_data")
     return Client()
 
 
@@ -96,8 +98,8 @@ def test_trips_status_filter(client):
     url = reverse("trips:list")
     active = client.get(url, {"status": "active"}).content.decode()
     cancelled = client.get(url, {"status": "cancelled"}).content.decode()
-    assert "Активна" in active and "Отменена" not in active
-    assert "Отменена" in cancelled and "Активна" not in cancelled
+    assert "trip-status-active" in active and "trip-status-cancelled" not in active
+    assert "trip-status-cancelled" in cancelled and "trip-status-active" not in cancelled
 
 
 def test_trip_detail_shows_discount_price(client):
